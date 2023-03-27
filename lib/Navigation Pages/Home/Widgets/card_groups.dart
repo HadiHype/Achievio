@@ -64,7 +64,9 @@ class _GroupCardState extends State<GroupCard> {
                             },
                             child: Icon(
                               widget.isStarred ? Icons.star : Icons.star_border,
-                              color: kGreyColor,
+                              color: widget.isStarred
+                                  ? Colors.amber
+                                  : kBlueGreyColor,
                               size: 21,
                             ),
                           ),
@@ -74,7 +76,7 @@ class _GroupCardState extends State<GroupCard> {
                           GestureDetector(
                             child: const Icon(
                               Icons.more_horiz,
-                              color: kGreyColor,
+                              color: kBlueGreyColor,
                               size: 21,
                             ),
                           ),

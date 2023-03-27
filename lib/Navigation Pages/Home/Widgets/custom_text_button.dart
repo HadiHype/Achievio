@@ -1,6 +1,5 @@
+import 'package:achievio/User%20Interface/app_colors.dart';
 import 'package:flutter/material.dart';
-
-import '../../../User Interface/app_colors.dart';
 
 class CustomTextButton extends StatelessWidget {
   const CustomTextButton({
@@ -23,7 +22,7 @@ class CustomTextButton extends StatelessWidget {
         child: Text(
           stringText,
           style: const TextStyle(
-            color: kSecondaryColor,
+            color: kBlueGreyColor,
             fontSize: 12,
           ),
         ),

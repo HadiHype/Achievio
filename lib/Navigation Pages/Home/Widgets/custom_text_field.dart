@@ -22,12 +22,12 @@ class CustomTextField extends StatelessWidget {
         prefixIcon: Icon(
           Icons.search,
           size: 16,
-          color: kGreyColor,
+          color: kBlueGreyColor,
         ),
         hintText: "Search",
         hintStyle: TextStyle(
           fontSize: 15.5,
-          color: kGreyColor,
+          color: kBlueGreyColor,
         ),
       ),
     );

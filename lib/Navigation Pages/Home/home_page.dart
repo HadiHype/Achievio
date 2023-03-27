@@ -160,7 +160,7 @@ class _HomePageState extends State<HomePage> {
                 splashRadius: 20,
                 icon: const Icon(
                   Icons.filter_list_rounded,
-                  color: kSecondaryColor,
+                  color: kBlueGreyColor,
                   size: 28,
                 ),
               ),
