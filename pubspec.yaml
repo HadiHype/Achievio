@@ -38,6 +38,15 @@ dependencies:
   cupertino_icons: ^1.0.2
   google_fonts: ^4.0.3
   font_awesome_flutter: ^10.4.0
+  image_picker: ^0.8.7+1
+  intl: ^0.18.0
+  shared_preferences: ^2.1.0
+  image_gallery_saver: ^1.7.1
+  gallery_saver: ^2.3.2
+  permission_handler: ^10.2.0
+  flutter_exif_rotation: ^0.5.1
+  image: ^4.0.15
+  flutter_image_compress: ^1.1.3
 
 dev_dependencies:
   flutter_test:

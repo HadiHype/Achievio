@@ -1,7 +1,10 @@
+import '../Models/user.dart';
+import '../Navigation Pages/Home/Widgets/card_groups.dart';
+
 List<bool> isStarred = List<bool>.filled(10, false);
+List<bool> isVisible = List<bool>.filled(10, true);
 
 List<String> titles = [
-  "Family",
   "Friends",
   "Work",
   "School",
@@ -11,6 +14,7 @@ List<String> titles = [
   "Travel",
   "Fitness",
   "Food",
+  "Family",
 ];
 
 List<String> subTitles = [
@@ -25,6 +29,24 @@ List<String> subTitles = [
   "Let us exercise and eat healthy. I am sure you will be happy with the results!",
   "We love to eat. Let us eat healthy and exercise. I am sure you will be happy with the results!"
 ];
+
+List<int> tasksAssigned = [
+  12,
+  18,
+  21,
+  13,
+  15,
+  17,
+  19,
+  20,
+  22,
+  14,
+];
+
+bool defined = false;
+List<GroupCard> groupCards = <GroupCard>[];
+String dropDownValue = 'default';
+String dropDownValue2 = 'All';
 
 List<String> usernames = [
   "Mom",
@@ -51,20 +73,6 @@ List<String> taskStatus = [
   "Uncle reacted to your task.",
   "Youssef reacted to your task.",
 ];
-//put dates, for example: "2022-01-01"
-
-// List<String> taskDate = [
-//   "03-27-2023",
-//   "03-24-2023",
-//   "03-23-2023",
-//   "03-22-2023",
-//   "03-21-2023",
-//   "03-20-2023",
-//   "03-19-2023",
-//   "03-18-2023",
-//   "03-17-2023",
-//   "03-16-2023",
-// ];
 
 List<String> taskDate = [
   "2023-03-26 17:35:00",
@@ -77,4 +85,37 @@ List<String> taskDate = [
   "2023-03-18 10:30:00",
   "2023-03-17 12:30:00",
   "2023-03-16 13:30:00",
+];
+
+List<User> users = [
+  User(
+    uid: "1",
+    name: "Mom",
+    email: "mom@mail.com",
+    phone: "123456789",
+  ),
+  User(
+    uid: "2",
+    name: "Dad",
+    email: "dad@mail.com",
+    phone: "123456789",
+  ),
+  User(
+    uid: "3",
+    name: "Sister",
+    email: "sister@mail.com",
+    phone: "123456789",
+  ),
+  User(
+    uid: "4",
+    name: "Brother",
+    email: "123456789",
+    phone: "123456789",
+  ),
+  User(
+    uid: "5",
+    name: "Grandma",
+    email: "grandpa@mail.com",
+    phone: "123456789",
+  ),
 ];

@@ -25,6 +25,7 @@ class ActivityAppBar extends StatelessWidget {
               ),
             ),
           ),
+          // TODO: Make the filter button clickable and show a pop up menu
           IconButton(
             onPressed: () {},
             padding: const EdgeInsets.only(top: 5),
