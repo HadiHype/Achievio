@@ -3,6 +3,7 @@ import '../Navigation Pages/Home/Widgets/card_groups.dart';
 
 List<bool> isStarred = List<bool>.filled(10, false);
 List<bool> isVisible = List<bool>.filled(10, true);
+List<bool> isArchived = List<bool>.filled(10, false);
 
 List<String> titles = [
   "Friends",
@@ -45,6 +46,8 @@ List<int> tasksAssigned = [
 
 bool defined = false;
 List<GroupCard> groupCards = <GroupCard>[];
+List<GroupCard> groupCardsArchived = <GroupCard>[];
+
 String dropDownValue = 'default';
 String dropDownValue2 = 'All';
 

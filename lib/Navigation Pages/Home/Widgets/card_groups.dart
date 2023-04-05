@@ -1,4 +1,3 @@
-import 'package:achievio/Navigation%20Pages/navigation.dart';
 import 'package:achievio/User%20Interface/app_colors.dart';
 import 'package:achievio/User%20Interface/variables.dart';
 import 'package:flutter/material.dart';
@@ -16,15 +15,19 @@ class GroupCard extends StatefulWidget {
     required this.visible,
     required this.groupCards,
     required this.index,
+    required this.profilePic,
+    required this.isArchived,
   });
 
-  final String title;
+  String title;
   bool isStarred;
-  final String subTitle;
-  final int numbOfTasksAssigned;
+  String subTitle;
+  int numbOfTasksAssigned;
   bool visible;
   final List<GroupCard> groupCards;
-  final int index;
+  int index;
+  String profilePic;
+  bool isArchived;
 
   @override
   State<GroupCard> createState() => _GroupCardState();
@@ -34,7 +37,7 @@ class _GroupCardState extends State<GroupCard> {
   @override
   Widget build(BuildContext context) {
     // TODO: Let the card be clickable and navigate to the group page
-    // TODO: Let menu button be clickable and show a pop up menu
+    int isPressed = 0;
 
     return widget.visible == true
         ? GestureDetector(
@@ -55,6 +58,21 @@ class _GroupCardState extends State<GroupCard> {
                           children: [
                             Row(
                               children: [
+                                Padding(
+                                  padding: const EdgeInsets.only(right: 12),
+                                  child: ClipRRect(
+                                    borderRadius: const BorderRadius.all(
+                                        Radius.circular(10)),
+                                    child: Image(
+                                      image: AssetImage(
+                                        widget.profilePic,
+                                      ),
+                                      width: 36,
+                                      height: 36,
+                                      fit: BoxFit.cover,
+                                    ),
+                                  ),
+                                ),
                                 Text(
                                   widget.title,
                                   style: const TextStyle(
@@ -107,14 +125,21 @@ class _GroupCardState extends State<GroupCard> {
                                               offset.dy,
                                         ),
                                         items: [
+                                          // TODO: Add functionality to edit group by taking user to edit group page (Only when firebase is ready)
                                           const PopupMenuItem(
                                             child: Text("Edit"),
                                           ),
-                                          const PopupMenuItem(
-                                            child: Text("Delete"),
-                                          ),
-                                          const PopupMenuItem(
-                                            child: Text("Archive"),
+                                          PopupMenuItem(
+                                            onTap: () {
+                                              _archiveGroup(
+                                                  widget.groupCards,
+                                                  widget.index,
+                                                  isPressed,
+                                                  context);
+                                            },
+                                            child: !widget.isArchived
+                                                ? const Text("Archive")
+                                                : const Text("Unarchive"),
                                           ),
                                         ],
                                       );
@@ -174,5 +199,83 @@ class _GroupCardState extends State<GroupCard> {
             ),
           )
         : Container();
+  }
+
+  _archiveGroup(
+    groupCards,
+    int index,
+    int isPressed,
+    context,
+  ) {
+    setState(() {
+      // groupCardsArchived.add(widget.groupCards[widget.index]);
+      GroupCard groupCardstemp;
+
+      if (!widget.isArchived) {
+        widget.visible = false;
+        groupCardstemp = groupCards.removeAt(widget.index);
+        groupCardsArchived.add(groupCardstemp);
+        groupCardstemp.isArchived = true;
+      } else {
+        widget.visible = false;
+        groupCardstemp = groupCardsArchived[groupCardsArchived.indexOf(widget)];
+        groupCardsArchived.removeWhere((element) => element == widget);
+        groupCardstemp.isArchived = false;
+        groupCards.insert(widget.index, groupCardstemp);
+      }
+
+      for (int i = 0; i < groupCards.length; i++) {
+        groupCards[i].index = i;
+      }
+
+      // create a toast message
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          duration: const Duration(seconds: 1),
+          content:
+              // text widget and textbutton to undo
+              Row(
+            children: [
+              const Text("Group archived"),
+              const SizedBox(
+                width: 10,
+              ),
+              TextButton(
+                onPressed: () {
+                  setState(
+                    () {
+                      isPressed++;
+
+                      if (isPressed > 1) {
+                        return;
+                      } else {
+                        if (!widget.visible && widget.isArchived) {
+                          widget.visible = true;
+                          groupCardstemp = groupCardsArchived[
+                              groupCardsArchived.indexOf(widget)];
+                          groupCardsArchived
+                              .removeWhere((element) => element == widget);
+                          groupCardstemp.isArchived = false;
+                          groupCards.insert(widget.index, groupCardstemp);
+                        } else if (!widget.visible && !widget.isArchived) {
+                          widget.visible = true;
+                          groupCards.removeAt(widget.index);
+                          groupCardsArchived.add(groupCardstemp);
+                        }
+                        ScaffoldMessenger.of(context).removeCurrentSnackBar();
+                      }
+                    },
+                  );
+                },
+                child: const Text(
+                  "Undo",
+                  style: TextStyle(color: Colors.white),
+                ),
+              ),
+            ],
+          ),
+        ),
+      );
+    });
   }
 }

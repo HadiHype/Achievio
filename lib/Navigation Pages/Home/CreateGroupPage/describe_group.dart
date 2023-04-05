@@ -1,15 +1,19 @@
 import 'dart:io';
+import 'package:achievio/Models/user.dart';
+import 'package:achievio/Navigation%20Pages/Home/Widgets/card_groups.dart';
+import 'package:achievio/User%20Interface/variables.dart';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 import '../../../User Interface/app_colors.dart';
 import 'package:image_gallery_saver/image_gallery_saver.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:flutter_exif_rotation/flutter_exif_rotation.dart';
-import 'package:image/image.dart' as img;
 import 'package:flutter_image_compress/flutter_image_compress.dart';
 
 class DescribeGroup extends StatefulWidget {
-  const DescribeGroup({super.key});
+  const DescribeGroup(this.usersOfGroup, {super.key});
+
+  final List<User> usersOfGroup;
 
   @override
   State<DescribeGroup> createState() => _DescribeGroupState();
@@ -18,7 +22,14 @@ class DescribeGroup extends StatefulWidget {
 class _DescribeGroupState extends State<DescribeGroup> {
   File? _pickedImage;
 
+  FocusNode focusNode = FocusNode();
+  TextEditingController groupNameController = TextEditingController();
+
+  FocusNode focusNodeTextArea = FocusNode();
+  TextEditingController groupDescriptionController = TextEditingController();
+
   void _pickImageCamera() async {
+    // pick image from camera and save it to the file system cache and then to the gallery of the phone
     final picker = ImagePicker();
     final pickedImage =
         await picker.pickImage(source: ImageSource.camera, imageQuality: 60);
@@ -28,7 +39,9 @@ class _DescribeGroupState extends State<DescribeGroup> {
       saveImage(pickedImageFile);
       _pickedImage = pickedImageFile;
     });
-    Navigator.pop(context);
+
+    // ignore: use_build_context_synchronously
+    Navigator.canPop(context);
   }
 
   Future<void> saveImage(File imageFile) async {
@@ -36,40 +49,30 @@ class _DescribeGroupState extends State<DescribeGroup> {
         await Permission.photos.request().isGranted &&
         await Permission.camera.request().isGranted &&
         await Permission.mediaLibrary.request().isGranted) {
+      // rotate image
       await FlutterExifRotation.rotateAndSaveImage(path: imageFile.path);
 
+      // try catch was removed -- may cause issues
+
       // compress rotated file
-      try {
-        await FlutterImageCompress.compressWithFile(
-          imageFile.path,
-          format: CompressFormat.jpeg,
-        );
+      await FlutterImageCompress.compressWithFile(
+        imageFile.path,
+        format: CompressFormat.jpeg,
+      );
 
-        // convert to bytes
-        final bytes = imageFile.readAsBytesSync();
+      // convert to bytes
+      final bytes = imageFile.readAsBytesSync();
 
-        final result = await ImageGallerySaver.saveImage(
-          bytes,
-          name: 'achievio',
-        );
-
-        print(result);
-        print('permission granted');
-      } catch (e) {
-        print(e);
-      }
-    } else {
-      print('permission denied');
+      // save to gallery
+      await ImageGallerySaver.saveImage(
+        bytes,
+        name: 'achievio',
+      );
     }
   }
 
-  @override
-  void initState() {
-    // TODO: implement initState
-    super.initState();
-  }
-
   void _pickImageGallery() async {
+    // pick image from gallery and save it to the file system cache and then to the gallery of the phone
     final picker = ImagePicker();
     final pickedImage = await picker.pickImage(source: ImageSource.gallery);
     final pickedImageFile = File(pickedImage!.path);
@@ -77,10 +80,13 @@ class _DescribeGroupState extends State<DescribeGroup> {
       _pickedImage = pickedImageFile;
       saveImage(pickedImageFile);
     });
+
+    // ignore: use_build_context_synchronously
     Navigator.pop(context);
   }
 
   void _remove() {
+    // remove image from the file system cache and from the gallery of the phone
     setState(() {
       _pickedImage = null;
     });
@@ -91,6 +97,7 @@ class _DescribeGroupState extends State<DescribeGroup> {
   Widget build(BuildContext context) {
     return SafeArea(
       child: Scaffold(
+        resizeToAvoidBottomInset: false,
         appBar: AppBar(
           title: const Text(
             'Describe your group',
@@ -108,14 +115,9 @@ class _DescribeGroupState extends State<DescribeGroup> {
             mainAxisAlignment: MainAxisAlignment.start,
             // create a form that takes in image input, group name, group description
             children: [
-              // TODO: Implement image input
-              // create a button that opens a dialog box that allows the user to select an image from their gallery
-              // the image should be displayed in the dialog box
-              // the image should be displayed in the group card
               const SizedBox(
                 height: 20,
               ),
-
               InkWell(
                 onTap: () {
                   showDialog(
@@ -196,11 +198,183 @@ class _DescribeGroupState extends State<DescribeGroup> {
                           ),
                         ],
                 ),
-              )
+              ),
+              const SizedBox(
+                height: 30,
+              ),
+              SizedBox(
+                width: 300,
+                child: TextField(
+                  focusNode: focusNode,
+                  controller: groupNameController,
+                  onTapOutside: ((event) => focusNode.unfocus()),
+                  decoration: const InputDecoration(
+                    // isDense: true,
+                    contentPadding:
+                        EdgeInsets.symmetric(horizontal: 10, vertical: 0),
+                    hintText: 'Group Name',
+                    hintStyle: TextStyle(
+                      color: Colors.black,
+                      fontSize: 16,
+                      fontWeight: FontWeight.w400,
+                    ),
+                    fillColor: Color(0xFFF5F5F5),
+                    focusedBorder: OutlineInputBorder(
+                      borderRadius: BorderRadius.all(
+                        Radius.circular(6),
+                      ),
+                      borderSide: BorderSide(
+                        color: Colors.black,
+                        width: 2,
+                      ),
+                    ),
+                    enabledBorder: OutlineInputBorder(
+                      borderRadius: BorderRadius.all(
+                        Radius.circular(6),
+                      ),
+                      borderSide: BorderSide(
+                        color: Colors.black,
+                        width: 1,
+                      ),
+                    ),
+                    filled: true,
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.all(
+                        Radius.circular(6),
+                      ),
+                    ),
+                  ),
+                  maxLength: 50,
+                ),
+              ),
+              const SizedBox(
+                height: 10,
+              ),
+              SizedBox(
+                width: 300,
+                child: TextField(
+                  focusNode: focusNodeTextArea,
+                  controller: groupDescriptionController,
+                  onTapOutside: ((event) => focusNodeTextArea.unfocus()),
+                  keyboardType: TextInputType.multiline,
+                  maxLines: 8,
+                  maxLength: 248,
+                  decoration: const InputDecoration(
+                    // isDense: true,
+                    contentPadding:
+                        EdgeInsets.symmetric(horizontal: 10, vertical: 10),
+                    hintText: 'Group Description',
+                    hintStyle: TextStyle(
+                      color: Colors.black,
+                      fontSize: 16,
+                      fontWeight: FontWeight.w400,
+                    ),
 
-              // TODO: Implement group name input
-
-              // TODO: Implement group description input
+                    fillColor: Color(0xFFF5F5F5),
+                    focusedBorder: OutlineInputBorder(
+                      borderRadius: BorderRadius.all(
+                        Radius.circular(6),
+                      ),
+                      borderSide: BorderSide(
+                        color: Colors.black,
+                        width: 2,
+                      ),
+                    ),
+                    enabledBorder: OutlineInputBorder(
+                      borderRadius: BorderRadius.all(
+                        Radius.circular(6),
+                      ),
+                      borderSide: BorderSide(
+                        color: Colors.black,
+                        width: 1,
+                      ),
+                    ),
+                    filled: true,
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.all(
+                        Radius.circular(6),
+                      ),
+                    ),
+                  ),
+                ),
+              ),
+              const SizedBox(
+                height: 20,
+              ),
+              SizedBox(
+                width: 300,
+                height: 50,
+                child: ElevatedButton(
+                  onPressed: () {
+                    groupCards.add(
+                      GroupCard(
+                        title: groupNameController.text,
+                        isStarred: false,
+                        subTitle: groupDescriptionController.text,
+                        numbOfTasksAssigned: 0,
+                        visible: true,
+                        groupCards: groupCards,
+                        index: groupCards.length,
+                        profilePic: 'assets/images/Profile_Pic.jpg',
+                        isArchived: false,
+                      ),
+                    );
+                    Navigator.popAndPushNamed(
+                      context,
+                      '/',
+                    );
+                  },
+                  style: ElevatedButton.styleFrom(
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(6),
+                    ),
+                    backgroundColor: kTertiaryColor,
+                  ),
+                  child: const Text(
+                    'Next',
+                    style: TextStyle(
+                      color: Colors.white,
+                      fontSize: 16,
+                      fontWeight: FontWeight.w400,
+                    ),
+                  ),
+                ),
+              ),
+              const SizedBox(
+                height: 40,
+              ),
+              SizedBox(
+                width: widget.usersOfGroup.length >= 6 ? double.infinity : 300,
+                height: 100,
+                child: ListView.builder(
+                  scrollDirection: Axis.horizontal,
+                  shrinkWrap: true,
+                  itemCount: widget.usersOfGroup.length,
+                  itemBuilder: (BuildContext context, int i) {
+                    return Padding(
+                      padding: const EdgeInsets.only(right: 10),
+                      child: Column(
+                        children: [
+                          const CircleAvatar(
+                            radius: 25,
+                            backgroundImage: AssetImage(
+                              'assets/images/Profile_Image.jpg',
+                            ),
+                          ),
+                          Text(
+                            widget.usersOfGroup[i].name,
+                            style: const TextStyle(
+                              color: Colors.black,
+                              fontSize: 12,
+                              fontWeight: FontWeight.w400,
+                            ),
+                          ),
+                        ],
+                      ),
+                    );
+                  },
+                ),
+              ),
             ],
           ),
         ),

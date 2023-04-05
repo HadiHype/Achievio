@@ -20,13 +20,6 @@ class _CreateGroupState extends State<CreateGroup> {
   List<bool> isCheckedList = List<bool>.filled(10, false);
   bool _isSelected = false;
 
-  @override
-  void initState() {
-    // TODO: implement initState
-
-    super.initState();
-  }
-
   Widget _buildSearchField() {
     return TextField(
       controller: _searchQueryController,
@@ -42,13 +35,13 @@ class _CreateGroupState extends State<CreateGroup> {
   }
 
   List<Widget> _buildActions() {
+    // if searching, show clear button
     if (_isSearching) {
       return <Widget>[
         IconButton(
           icon: const Icon(Icons.clear),
           onPressed: () {
-            if (_searchQueryController == null ||
-                _searchQueryController.text.isEmpty) {
+            if (_searchQueryController.text.isEmpty) {
               Navigator.pop(context);
               return;
             }
@@ -67,6 +60,7 @@ class _CreateGroupState extends State<CreateGroup> {
   }
 
   void _startSearch() {
+    // add local history entry to route
     ModalRoute.of(context)
         ?.addLocalHistoryEntry(LocalHistoryEntry(onRemove: _stopSearching));
 
@@ -76,12 +70,14 @@ class _CreateGroupState extends State<CreateGroup> {
   }
 
   void updateSearchQuery(String newQuery) {
+    // update search query
     setState(() {
       searchQuery = newQuery;
     });
   }
 
   void _stopSearching() {
+    // clear search query
     _clearSearchQuery();
 
     setState(() {
@@ -90,6 +86,7 @@ class _CreateGroupState extends State<CreateGroup> {
   }
 
   void _clearSearchQuery() {
+    // clear search query
     setState(() {
       _searchQueryController.clear();
       updateSearchQuery("");
@@ -104,12 +101,11 @@ class _CreateGroupState extends State<CreateGroup> {
       floatingActionButton: _isSelected
           ? FloatingActionButton.extended(
               onPressed: () {
-                // create group
                 // navigate to group page
                 Navigator.push(
                   context,
                   MaterialPageRoute(
-                    builder: (context) => const DescribeGroup(),
+                    builder: (context) => DescribeGroup(usersOfGroup),
                   ),
                 );
               },
@@ -122,7 +118,9 @@ class _CreateGroupState extends State<CreateGroup> {
             )
           : null,
       appBar: AppBar(
+        // if searching, show back button else show search icon
         leading: _isSearching ? const BackButton() : null,
+        // if searching, show search field else show title
         title: _isSearching
             ? _buildSearchField()
             : const Text(
@@ -137,12 +135,11 @@ class _CreateGroupState extends State<CreateGroup> {
         elevation: 1,
         backgroundColor: kTertiaryColor,
       ),
-      // from list of users, select users to add to group
       body: ListView.builder(
         itemBuilder: (BuildContext context, int index) {
           // return list tile for each user according to search query
-
           if (searchQuery.isEmpty) {
+            // if search query is empty, return list tile for all users
             return ListTile(
               title: Text(
                 users[index].name,
@@ -155,30 +152,16 @@ class _CreateGroupState extends State<CreateGroup> {
                 value: isCheckedList[index],
                 fillColor: MaterialStateProperty.all(kTertiaryColor),
                 onChanged: (value) {
-                  // add user to group
-                  // if user is already in group, remove user from group
-                  // change value of checkbox
                   setState(
                     () {
-                      if (isCheckedList[index] == false) {
-                        usersOfGroup.add(users[index]);
-                        isCheckedList[index] = true;
-                      } else {
-                        usersOfGroup.remove(users[index]);
-                        isCheckedList[index] = false;
-                      }
-
-                      if (isCheckedList.contains(true)) {
-                        _isSelected = true;
-                      } else {
-                        _isSelected = false;
-                      }
+                      addUserToGroup(index);
                     },
                   );
                 },
               ),
             );
           } else {
+            // if search query is not empty, return list tile only if user name contains search query
             if (users[index].name.toLowerCase().contains(searchQuery)) {
               return ListTile(
                 title: Text(users[index].name),
@@ -192,13 +175,7 @@ class _CreateGroupState extends State<CreateGroup> {
                   onChanged: (value) {
                     setState(
                       () {
-                        if (isCheckedList[index] == false) {
-                          usersOfGroup.add(users[index]);
-                          isCheckedList[index] = true;
-                        } else {
-                          usersOfGroup.remove(users[index]);
-                          isCheckedList[index] = false;
-                        }
+                        addUserToGroup(index);
                       },
                     );
                   },
@@ -212,5 +189,25 @@ class _CreateGroupState extends State<CreateGroup> {
         itemCount: users.length,
       ),
     );
+  }
+
+  void addUserToGroup(int index) {
+    if (isCheckedList[index] == false) {
+      // add user to group
+      usersOfGroup.add(users[index]);
+      isCheckedList[index] = true;
+    } else {
+      // remove user from group
+      usersOfGroup.remove(users[index]);
+      isCheckedList[index] = false;
+    }
+
+    if (isCheckedList.contains(true)) {
+      // if at least one user is selected, show floating action button
+      _isSelected = true;
+    } else {
+      // if no user is selected, hide floating action button
+      _isSelected = false;
+    }
   }
 }

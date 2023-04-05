@@ -20,7 +20,7 @@ class StackedAvatars extends StatelessWidget {
     return Padding(
       padding: EdgeInsets.only(left: leftPadding),
       child: CircleAvatar(
-        radius: 12.5,
+        radius: 10,
         backgroundImage: AssetImage(image),
       ),
     );

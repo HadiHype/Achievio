@@ -32,7 +32,6 @@ class _CustomTextFieldState extends State<CustomTextField> {
               for (var card in widget.groupCards) {
                 card.visible = true;
               }
-              print("Empty");
             } else {
               for (var card in widget.groupCards) {
                 if (card.title.toLowerCase().contains(value.toLowerCase())) {
@@ -41,7 +40,6 @@ class _CustomTextFieldState extends State<CustomTextField> {
                   card.visible = false;
                 }
               }
-              print("Not Empty");
             }
           },
         );
