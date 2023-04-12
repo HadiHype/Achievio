@@ -1,5 +1,7 @@
+import 'package:achievio/Authentication/Authentication%20Screen/login_page.dart';
 import 'package:achievio/User%20Interface/app_colors.dart';
 import 'package:flutter/material.dart';
+import '../../Authentication/Authentication Logic/auth_logic.dart';
 import 'Widgets/Slivers/list_layout.dart';
 import 'Widgets/Slivers/lower_sliver.dart';
 import 'Widgets/card_groups.dart';
@@ -19,6 +21,7 @@ class _HomePageState extends State<HomePage> {
   TextEditingController controller = TextEditingController();
   final GlobalKey<ScaffoldState> _key = GlobalKey();
   List<GroupCard> groupCardsSorted = <GroupCard>[];
+  Auth auth = Auth();
 
   @override
   void initState() {
@@ -50,6 +53,8 @@ class _HomePageState extends State<HomePage> {
     }
 
     groupCardsSorted.addAll(groupCards);
+
+    print("Home Page Loaded");
 
     super.initState();
   }
@@ -100,6 +105,25 @@ class _HomePageState extends State<HomePage> {
                     focusNode: focusNode,
                     controller: controller,
                     groupCardsSorted: groupCardsSorted),
+
+                SliverToBoxAdapter(
+                  // button to log out
+                  child: Container(
+                    margin: const EdgeInsets.only(top: 20),
+                    child: ElevatedButton(
+                      onPressed: () {
+                        // log out
+                        auth.signOut();
+                        Navigator.pushAndRemoveUntil(context, MaterialPageRoute(
+                          builder: (context) {
+                            return const LoginScreen();
+                          },
+                        ), (route) => false);
+                      },
+                      child: const Text('Log Out'),
+                    ),
+                  ),
+                ),
 
                 // A sliver list layout of cards that changes based on the search, archiving, filtering, and sorting.
                 ListLayout(groupCardsSorted: groupCardsSorted),
