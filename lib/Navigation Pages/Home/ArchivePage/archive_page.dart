@@ -54,6 +54,7 @@ class _ArchivePageState extends State<ArchivePage> {
                 context,
                 MaterialPageRoute(builder: (context) => const NavPage()),
               );
+              // Navigator.pop(context);
             },
           ),
         ),

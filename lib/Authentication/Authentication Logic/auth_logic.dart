@@ -1,5 +1,3 @@
-import 'dart:ffi';
-
 import 'package:achievio/User%20Interface/app_colors.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
@@ -67,7 +65,7 @@ class Auth {
     String password,
     String username,
     String name,
-    Char Gender,
+    Gender,
   ) async {
     // create a user with email and password
     // then store that user in a variable called user which will be stored in firestore

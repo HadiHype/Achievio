@@ -1,9 +1,9 @@
+import 'package:achievio/Authentication/Authentication%20Screen/login_page.dart';
+import 'package:achievio/Authentication/Authentication%20Screen/signup_page_additional.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:modal_progress_hud_nsn/modal_progress_hud_nsn.dart';
-
-import '../../User Interface/app_colors.dart';
 import '../Authentication Logic/auth_logic.dart';
 
 class SignUpScreen extends StatefulWidget {
@@ -14,29 +14,42 @@ class SignUpScreen extends StatefulWidget {
 }
 
 class _SignUpScreenState extends State<SignUpScreen> {
-  final TextEditingController _emailController = TextEditingController();
-  final TextEditingController _passwordController = TextEditingController();
-  final FocusNode focusNode = FocusNode();
-  final FocusNode focusNodePassword = FocusNode();
-  String email = '';
-  String password = '';
-  bool showSpinner = false;
+  // firebase auth
   final _auth = FirebaseAuth.instance;
   final Auth auth = Auth();
 
+  // variables to store user input
+  String email = '';
+  String password = '';
+
+  // keys
+  final _formKey = GlobalKey<FormState>();
+
+  // focus nodes
+  final FocusNode focusNode = FocusNode();
+  final FocusNode focusNodePassword = FocusNode();
+
+  // controllers
+  final TextEditingController _emailController = TextEditingController();
+  final TextEditingController _passwordController = TextEditingController();
+
+  // booleans
+  bool showSpinner = false;
+  bool showPassword = false;
+
   @override
   Widget build(BuildContext context) {
+    // get screen height and keyboard height
     final double screenHeight = MediaQuery.of(context).size.height;
     final double keyboardHeight = MediaQuery.of(context).viewInsets.bottom;
-    // create login page
+
     return Scaffold(
       resizeToAvoidBottomInset: false,
       backgroundColor: Colors.white,
       body: ModalProgressHUD(
         inAsyncCall: showSpinner,
-        color: const Color(0xFF4169E1),
         child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 24.0),
+          padding: const EdgeInsets.symmetric(horizontal: 18.0),
           child: SizedBox(
             height: screenHeight - keyboardHeight,
             child: Center(
@@ -47,9 +60,9 @@ class _SignUpScreenState extends State<SignUpScreen> {
                   crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: <Widget>[
                     const Image(
-                      image: AssetImage('assets/images/signin_image.png'),
+                      image: AssetImage('assets/images/signup_image.png'),
                       fit: BoxFit.contain,
-                      height: 220,
+                      height: 260,
                       width: double.infinity,
                     ),
 
@@ -71,200 +84,273 @@ class _SignUpScreenState extends State<SignUpScreen> {
                       height: 36.0,
                     ),
 
-                    TextField(
-                      focusNode: focusNode,
-                      controller: _emailController,
-                      onTapOutside: ((event) => focusNode.unfocus()),
-                      onChanged: (value) {
-                        setState(() {
-                          email = value;
-                        });
-                      },
-                      decoration: const InputDecoration(
-                        // isDense: true,
-                        contentPadding:
-                            EdgeInsets.symmetric(horizontal: 10, vertical: 0),
-                        hintText: 'example@email.com',
-                        hintStyle: TextStyle(
-                          color: Colors.black45,
-                          fontSize: 16,
-                          fontWeight: FontWeight.w400,
-                        ),
-                        fillColor: Color(0xFFF5F5F5),
-                        focusedBorder: OutlineInputBorder(
-                          borderRadius: BorderRadius.all(
-                            Radius.circular(6),
+                    Form(
+                      key: _formKey,
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.stretch,
+                        children: [
+                          TextFormField(
+                            controller: _emailController,
+                            focusNode: focusNode,
+                            onTapOutside: (event) => focusNode.unfocus(),
+                            keyboardType: TextInputType.emailAddress,
+                            validator: (value) {
+                              if (value!.isEmpty) {
+                                return 'Please enter email';
+                              } else {
+                                if (!RegExp(
+                                        r'^[a-zA-Z0-9.]+@[a-zA-Z0-9]+\.[a-zA-Z]+')
+                                    .hasMatch(value)) {
+                                  return 'Please enter valid email';
+                                }
+                              }
+                              return null;
+                            },
+                            onChanged: (value) {
+                              email = value;
+                            },
+                            decoration: const InputDecoration(
+                              contentPadding: EdgeInsets.symmetric(
+                                  horizontal: 10, vertical: 0),
+                              hintText: 'example@email.com',
+                              hintStyle: TextStyle(
+                                color: Colors.black45,
+                                fontSize: 16,
+                                fontWeight: FontWeight.w400,
+                              ),
+                              fillColor: Color(0xFFF5F5F5),
+                              focusedBorder: OutlineInputBorder(
+                                borderRadius: BorderRadius.all(
+                                  Radius.circular(6),
+                                ),
+                                borderSide: BorderSide(
+                                  color: Colors.black,
+                                  width: 2,
+                                ),
+                              ),
+                              enabledBorder: OutlineInputBorder(
+                                borderRadius: BorderRadius.all(
+                                  Radius.circular(6),
+                                ),
+                                borderSide: BorderSide(
+                                  color: Colors.black,
+                                  width: 1,
+                                ),
+                              ),
+                              filled: true,
+                              border: OutlineInputBorder(
+                                borderRadius: BorderRadius.all(
+                                  Radius.circular(6),
+                                ),
+                              ),
+                            ),
                           ),
-                          borderSide: BorderSide(
-                            color: Colors.black,
-                            width: 2,
+                          const SizedBox(
+                            height: 12.0,
                           ),
-                        ),
-                        enabledBorder: OutlineInputBorder(
-                          borderRadius: BorderRadius.all(
-                            Radius.circular(6),
+                          TextFormField(
+                            controller: _passwordController,
+                            focusNode: focusNodePassword,
+                            onTapOutside: (event) =>
+                                focusNodePassword.unfocus(),
+                            obscureText: !showPassword,
+                            validator: (value) {
+                              RegExp regex = RegExp(
+                                  r'^(?=.*?[A-Z])(?=.*?[a-z])(?=.*?[0-9])(?=.*?[!@#\$&*~]).{8,}$');
+                              if (value!.isEmpty) {
+                                return 'Please enter password';
+                              } else {
+                                if (!regex.hasMatch(value)) {
+                                  var val = '';
+                                  if (!value.contains(RegExp(r'[A-Z]'))) {
+                                    val += '\u2022 1 uppercase letter\n';
+                                  }
+                                  if (!value.contains(RegExp(r'[a-z]'))) {
+                                    val += '\u2022 1 lowercase letter\n';
+                                  }
+                                  if (!value.contains(RegExp(r'[0-9]'))) {
+                                    val += '\u2022 1 number\n';
+                                  }
+                                  if (!value.contains(RegExp(r'[!@#\$&*~]'))) {
+                                    val += '\u2022 1 special character\n';
+                                  }
+                                  if (value.length < 8) {
+                                    val += '\u2022 8 characters\n';
+                                  }
+
+                                  return 'Password must contain:\n$val';
+                                } else {
+                                  return null;
+                                }
+                              }
+                            },
+                            onChanged: (value) {
+                              password = value;
+                            },
+                            decoration: InputDecoration(
+                              // isDense: true,
+                              contentPadding: const EdgeInsets.symmetric(
+                                  horizontal: 10, vertical: 0),
+                              hintText: 'Password123!',
+                              hintStyle: const TextStyle(
+                                color: Colors.black45,
+                                fontSize: 16,
+                                fontWeight: FontWeight.w400,
+                              ),
+                              suffixIcon: IconButton(
+                                onPressed: () {
+                                  setState(() {
+                                    showPassword = !showPassword;
+                                  });
+                                },
+                                icon: Icon(
+                                  showPassword
+                                      ? Icons.visibility
+                                      : Icons.visibility_off,
+                                  color: Colors.black,
+                                ),
+                              ),
+                              fillColor: const Color(0xFFF5F5F5),
+                              focusedBorder: const OutlineInputBorder(
+                                borderRadius: BorderRadius.all(
+                                  Radius.circular(6),
+                                ),
+                                borderSide: BorderSide(
+                                  color: Colors.black,
+                                  width: 2,
+                                ),
+                              ),
+                              enabledBorder: const OutlineInputBorder(
+                                borderRadius: BorderRadius.all(
+                                  Radius.circular(6),
+                                ),
+                                borderSide: BorderSide(
+                                  color: Colors.black,
+                                  width: 1,
+                                ),
+                              ),
+                              filled: true,
+                              border: const OutlineInputBorder(
+                                borderRadius: BorderRadius.all(
+                                  Radius.circular(6),
+                                ),
+                              ),
+                            ),
                           ),
-                          borderSide: BorderSide(
-                            color: Colors.black,
-                            width: 1,
+                          const SizedBox(
+                            height: 24.0,
                           ),
-                        ),
-                        filled: true,
-                        border: OutlineInputBorder(
-                          borderRadius: BorderRadius.all(
-                            Radius.circular(6),
+                          ElevatedButton(
+                            onPressed: email != "" && password != ""
+                                ? () async {
+                                    if (_formKey.currentState!.validate()) {
+                                      setState(() {
+                                        showSpinner = true;
+                                      });
+                                      try {
+                                        final newUser = await _auth
+                                            .createUserWithEmailAndPassword(
+                                                email: email,
+                                                password: password);
+                                        var db = FirebaseFirestore.instance;
+
+                                        await db
+                                            .collection('users')
+                                            .doc(newUser.user!.uid)
+                                            .set({
+                                          'email': email,
+                                          'password': password,
+                                          'uid': newUser.user!.uid,
+                                          'gender': "",
+                                          'dateofbirth': "",
+                                          'username': "",
+                                          'profilePicture': "",
+                                          'friends': [],
+                                          'dateCreated':
+                                              DateTime.now().toString(),
+                                          'dateUpdated':
+                                              DateTime.now().toString(),
+                                          'dateLastLogin':
+                                              DateTime.now().toString(),
+                                        });
+
+                                        if (!mounted) return;
+
+                                        Navigator.push(
+                                            context,
+                                            PageRouteBuilder(
+                                                pageBuilder: (context,
+                                                        animation,
+                                                        secondaryAnimation) =>
+                                                    const AdditionalSignUpScreen(),
+                                                transitionsBuilder: (context,
+                                                    animation,
+                                                    secondaryAnimation,
+                                                    child) {
+                                                  var begin =
+                                                      const Offset(0.0, 1.0);
+                                                  var end = Offset.zero;
+                                                  var curve = Curves.ease;
+
+                                                  var tween = Tween(
+                                                          begin: begin,
+                                                          end: end)
+                                                      .chain(CurveTween(
+                                                          curve: curve));
+
+                                                  return SlideTransition(
+                                                    position:
+                                                        animation.drive(tween),
+                                                    child: child,
+                                                  );
+                                                }));
+                                      } catch (signuperror) {
+                                        if (signuperror
+                                            is FirebaseAuthException) {
+                                          if (signuperror.code ==
+                                              'email-already-in-use') {
+                                            ScaffoldMessenger.of(context)
+                                                .showSnackBar(
+                                              const SnackBar(
+                                                behavior:
+                                                    SnackBarBehavior.floating,
+                                                margin: EdgeInsets.only(
+                                                    bottom: 100.0,
+                                                    left: 50,
+                                                    right: 50),
+                                                content: Text(
+                                                    'Email already in use'),
+                                                dismissDirection:
+                                                    DismissDirection.none,
+                                              ),
+                                            );
+                                          }
+                                        }
+                                      }
+                                      setState(
+                                        () {
+                                          showSpinner = false;
+                                        },
+                                      );
+                                    }
+                                  }
+                                : null,
+                            style: ElevatedButton.styleFrom(
+                              shape: const RoundedRectangleBorder(
+                                borderRadius:
+                                    BorderRadius.all(Radius.circular(8.0)),
+                              ),
+                              backgroundColor: const Color(0xFF4169E1),
+                            ),
+                            child: const Text('Continue'),
                           ),
-                        ),
-                      ),
-                    ),
-                    const SizedBox(
-                      height: 8.0,
-                    ),
-                    TextField(
-                      focusNode: focusNodePassword,
-                      controller: _passwordController,
-                      onTapOutside: ((event) => focusNodePassword.unfocus()),
-                      onChanged: (value) {
-                        setState(() {
-                          password = value;
-                        });
-                      },
-                      decoration: const InputDecoration(
-                        // isDense: true,
-                        contentPadding:
-                            EdgeInsets.symmetric(horizontal: 10, vertical: 0),
-                        hintText: 'password123!',
-                        hintStyle: TextStyle(
-                          color: Colors.black45,
-                          fontSize: 16,
-                          fontWeight: FontWeight.w400,
-                        ),
-                        fillColor: Color(0xFFF5F5F5),
-                        focusedBorder: OutlineInputBorder(
-                          borderRadius: BorderRadius.all(
-                            Radius.circular(6),
-                          ),
-                          borderSide: BorderSide(
-                            color: Colors.black,
-                            width: 2,
-                          ),
-                        ),
-                        enabledBorder: OutlineInputBorder(
-                          borderRadius: BorderRadius.all(
-                            Radius.circular(6),
-                          ),
-                          borderSide: BorderSide(
-                            color: Colors.black,
-                            width: 1,
-                          ),
-                        ),
-                        filled: true,
-                        border: OutlineInputBorder(
-                          borderRadius: BorderRadius.all(
-                            Radius.circular(6),
-                          ),
-                        ),
+                        ],
                       ),
                     ),
                     const SizedBox(
                       height: 24.0,
                     ),
                     // forgot password button
-
-                    ElevatedButton(
-                      onPressed: email != "" && password != ""
-                          ? () async {
-                              setState(() {
-                                showSpinner = true;
-                              });
-                              try {
-                                // create user
-                                final newUser =
-                                    await _auth.createUserWithEmailAndPassword(
-                                        email: email, password: password);
-
-                                // add user to firestore collection 'users'
-                                var db = FirebaseFirestore.instance;
-
-                                db.collection('users').add({
-                                  'email': email,
-                                  'password': password,
-                                });
-
-                                if (newUser != null) {
-                                  // navigate to home page
-                                  Navigator.pushNamed(context, '/nav');
-                                }
-                              } on FirebaseAuthException catch (e) {
-                                if (e.code == 'user-not-found') {
-                                  // return popup message
-                                  ScaffoldMessenger.of(context).showSnackBar(
-                                    const SnackBar(
-                                      behavior: SnackBarBehavior.floating,
-                                      margin: EdgeInsets.only(
-                                          bottom: 100.0, left: 50, right: 50),
-                                      content:
-                                          Text('Invalid user credentials.'),
-                                      dismissDirection: DismissDirection.none,
-                                    ),
-                                  );
-                                  // print('No user found for that email.');
-                                } else if (e.code == 'wrong-password') {
-                                  // return toast message
-                                  ScaffoldMessenger.of(context).showSnackBar(
-                                    SnackBar(
-                                      behavior: SnackBarBehavior.floating,
-                                      margin: const EdgeInsets.only(
-                                          bottom: 100.0, left: 50, right: 50),
-                                      content: const Text(
-                                          'Invalid user credentials.'),
-                                      dismissDirection: DismissDirection.none,
-                                      backgroundColor:
-                                          kTertiaryColor.withOpacity(0.5),
-                                      elevation: 0,
-                                    ),
-                                  );
-                                } else if (e.code == 'invalid-email') {
-                                  // return toast message
-                                  ScaffoldMessenger.of(context).showSnackBar(
-                                    const SnackBar(
-                                      behavior: SnackBarBehavior.floating,
-                                      margin: EdgeInsets.only(
-                                          bottom: 100.0, left: 50, right: 50),
-                                      content:
-                                          Text('Invalid user credentials.'),
-                                      dismissDirection: DismissDirection.none,
-                                    ),
-                                  );
-                                } else if (e.code == 'user-disabled') {
-                                  // return toast message
-                                  ScaffoldMessenger.of(context).showSnackBar(
-                                    const SnackBar(
-                                      behavior: SnackBarBehavior.floating,
-                                      margin: EdgeInsets.only(
-                                          bottom: 100.0, left: 50, right: 50),
-                                      content:
-                                          Text('Invalid user credentials.'),
-                                      dismissDirection: DismissDirection.none,
-                                    ),
-                                  );
-                                }
-                              }
-                              setState(
-                                () {
-                                  showSpinner = false;
-                                },
-                              );
-                            }
-                          : null,
-                      style: ElevatedButton.styleFrom(
-                        shape: const RoundedRectangleBorder(
-                          borderRadius: BorderRadius.all(Radius.circular(8.0)),
-                        ),
-                        backgroundColor: const Color(0xFF4169E1),
-                      ),
-                      child: const Text('Sign Up'),
-                    ),
 
                     Row(
                       mainAxisAlignment: MainAxisAlignment.center,
@@ -277,7 +363,17 @@ class _SignUpScreenState extends State<SignUpScreen> {
                         ),
                         TextButton(
                           onPressed: () {
-                            Navigator.pushNamed(context, '/login');
+                            Navigator.pushAndRemoveUntil(
+                                context,
+                                PageRouteBuilder(
+                                    transitionDuration:
+                                        const Duration(milliseconds: 250),
+                                    transitionsBuilder: (_, a, __, c) =>
+                                        FadeTransition(opacity: a, child: c),
+                                    pageBuilder: (context, a, b) {
+                                      return const LoginScreen();
+                                    }),
+                                (route) => false);
                           },
                           style: TextButton.styleFrom(
                             minimumSize: Size.zero,

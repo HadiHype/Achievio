@@ -1,5 +1,5 @@
 import 'dart:io';
-import 'package:achievio/Models/user.dart';
+import 'package:achievio/Models/userinfo.dart';
 import 'package:achievio/Navigation%20Pages/Home/Widgets/card_groups.dart';
 import 'package:achievio/User%20Interface/variables.dart';
 import 'package:flutter/material.dart';
@@ -13,7 +13,7 @@ import 'package:flutter_image_compress/flutter_image_compress.dart';
 class DescribeGroup extends StatefulWidget {
   const DescribeGroup(this.usersOfGroup, {super.key});
 
-  final List<User> usersOfGroup;
+  final List<UserData> usersOfGroup;
 
   @override
   State<DescribeGroup> createState() => _DescribeGroupState();
@@ -354,16 +354,16 @@ class _DescribeGroupState extends State<DescribeGroup> {
                     return Padding(
                       padding: const EdgeInsets.only(right: 10),
                       child: Column(
-                        children: [
-                          const CircleAvatar(
+                        children: const [
+                          CircleAvatar(
                             radius: 25,
                             backgroundImage: AssetImage(
                               'assets/images/Profile_Image.jpg',
                             ),
                           ),
                           Text(
-                            widget.usersOfGroup[i].name,
-                            style: const TextStyle(
+                            "Name",
+                            style: TextStyle(
                               color: Colors.black,
                               fontSize: 12,
                               fontWeight: FontWeight.w400,

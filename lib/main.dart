@@ -1,9 +1,13 @@
 import 'package:achievio/Authentication/Authentication%20Screen/login_page.dart';
 import 'package:achievio/Authentication/Authentication%20Screen/signup_page.dart';
+import 'package:achievio/Authentication/Authentication%20Screen/signup_page_additional.dart';
 import 'package:achievio/Navigation%20Pages/Home/home_page.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:google_fonts/google_fonts.dart';
+
 // ignore: depend_on_referenced_packages
 import 'package:firebase_core/firebase_core.dart';
 import 'Authentication/Authentication Logic/auth_logic.dart';
@@ -16,9 +20,31 @@ Future main() async {
 
   final Auth auth = Auth();
   final bool isLogged = await auth.isLogged();
+  final authUser = FirebaseAuth.instance;
+
+  String? route;
+  DocumentSnapshot<Map<String, dynamic>> result;
+
+  // check if this user has a username
+  if (isLogged) {
+    result = await FirebaseFirestore.instance
+        .collection('users')
+        .doc(authUser.currentUser?.uid)
+        .get();
+
+    if (result.get('username') != "") {
+      route = '/nav';
+    } else if (result.get('username') == '') {
+      route = '/secondsignup';
+    }
+  }
+
+  if (!isLogged) {
+    route = '/login';
+  }
 
   final MyApp myApp = MyApp(
-    route: isLogged ? '/nav' : '/login',
+    route: route!,
   );
 
   runApp(myApp);
@@ -65,10 +91,12 @@ class MyApp extends StatelessWidget {
           case '/register':
             return MaterialPageRoute(
                 builder: (context) => const SignUpScreen(), settings: settings);
-          // default:
-          //   return MaterialPageRoute(
-          //       builder: (context) => const NavPage(), settings: settings);
+          case '/secondsignup':
+            return MaterialPageRoute(
+                builder: (context) => const AdditionalSignUpScreen(),
+                settings: settings);
         }
+        return null;
       }),
       // check if user is logged in and change initial route
       routes: {
@@ -77,6 +105,7 @@ class MyApp extends StatelessWidget {
         '/activity': (context) => const ActivityPage(),
         '/login': (context) => const LoginScreen(),
         '/register': (context) => const SignUpScreen(),
+        '/secondsignup': (context) => const AdditionalSignUpScreen(),
       },
       initialRoute: route,
     );

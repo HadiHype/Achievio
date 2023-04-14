@@ -1,4 +1,3 @@
-import '../Models/user.dart';
 import '../Navigation Pages/Home/Widgets/card_groups.dart';
 
 List<bool> isStarred = List<bool>.filled(10, false);
@@ -90,35 +89,35 @@ List<String> taskDate = [
   "2023-03-16 13:30:00",
 ];
 
-List<User> users = [
-  User(
-    uid: "1",
-    name: "Mom",
-    email: "mom@mail.com",
-    phone: "123456789",
-  ),
-  User(
-    uid: "2",
-    name: "Dad",
-    email: "dad@mail.com",
-    phone: "123456789",
-  ),
-  User(
-    uid: "3",
-    name: "Sister",
-    email: "sister@mail.com",
-    phone: "123456789",
-  ),
-  User(
-    uid: "4",
-    name: "Brother",
-    email: "123456789",
-    phone: "123456789",
-  ),
-  User(
-    uid: "5",
-    name: "Grandma",
-    email: "grandpa@mail.com",
-    phone: "123456789",
-  ),
-];
+// List<UserData> users = [
+//   UserData(
+//     uid: "1",
+//     name: "Mom",
+//     email: "mom@mail.com",
+//     phone: "123456789",
+//   ),
+//   UserData(
+//     uid: "2",
+//     name: "Dad",
+//     email: "dad@mail.com",
+//     phone: "123456789",
+//   ),
+//   UserData(
+//     uid: "3",
+//     name: "Sister",
+//     email: "sister@mail.com",
+//     phone: "123456789",
+//   ),
+//   UserData(
+//     uid: "4",
+//     name: "Brother",
+//     email: "123456789",
+//     phone: "123456789",
+//   ),
+//   UserData(
+//     uid: "5",
+//     name: "Grandma",
+//     email: "grandpa@mail.com",
+//     phone: "123456789",
+//   ),
+// ];

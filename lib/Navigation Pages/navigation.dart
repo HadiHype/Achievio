@@ -24,12 +24,6 @@ class _NavPageState extends State<NavPage> {
   }
 
   @override
-  void initState() {
-    // TODO: implement initState
-    print("Page Loaded");
-  }
-
-  @override
   Widget build(BuildContext context) {
     return Scaffold(
       body: pages[currentIndex],

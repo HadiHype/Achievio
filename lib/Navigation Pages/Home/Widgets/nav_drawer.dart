@@ -1,10 +1,16 @@
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 
 import '../../../User Interface/app_colors.dart';
 
 class NavDrawer extends StatelessWidget {
+  final String username;
+  final String? profilePic;
+
   const NavDrawer({
+    required this.username,
     super.key,
+    required this.profilePic,
   });
 
   @override
@@ -18,19 +24,30 @@ class NavDrawer extends StatelessWidget {
             const SizedBox(
               height: 20,
             ),
-            const CircleAvatar(
-              radius: 32,
-              backgroundImage: AssetImage("assets/images/Profile_Image.jpg"),
+            CachedNetworkImage(
+              imageUrl: profilePic ?? "",
+              height: 75,
+              width: 75,
+              fit: BoxFit.cover,
+              imageBuilder: (context, imageProvider) => Container(
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
+                  image: DecorationImage(
+                    image: imageProvider,
+                    fit: BoxFit.cover,
+                  ),
+                ),
+              ),
             ),
             const SizedBox(
               height: 10,
             ),
-            const Text(
-              "Youssef Mneimneh",
-              style: TextStyle(
+            Text(
+              username,
+              style: const TextStyle(
                 color: kTitleColor,
                 fontWeight: FontWeight.bold,
-                fontSize: 18,
+                fontSize: 21,
               ),
             ),
             const SizedBox(

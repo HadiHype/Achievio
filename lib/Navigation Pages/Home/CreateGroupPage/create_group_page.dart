@@ -1,8 +1,7 @@
 import 'package:achievio/User%20Interface/app_colors.dart';
 import 'package:flutter/material.dart';
-import 'package:achievio/User Interface/variables.dart';
 
-import '../../../Models/user.dart';
+import '../../../Models/userinfo.dart';
 import 'describe_group.dart';
 
 class CreateGroup extends StatefulWidget {
@@ -16,9 +15,9 @@ class _CreateGroupState extends State<CreateGroup> {
   final TextEditingController _searchQueryController = TextEditingController();
   bool _isSearching = false;
   String searchQuery = "";
-  List<User> usersOfGroup = <User>[];
+  List<UserData> usersOfGroup = <UserData>[];
   List<bool> isCheckedList = List<bool>.filled(10, false);
-  bool _isSelected = false;
+  bool isSelected = false;
 
   Widget _buildSearchField() {
     return TextField(
@@ -98,7 +97,7 @@ class _CreateGroupState extends State<CreateGroup> {
     return Scaffold(
       floatingActionButtonAnimator: FloatingActionButtonAnimator.scaling,
       floatingActionButtonLocation: FloatingActionButtonLocation.centerFloat,
-      floatingActionButton: _isSelected
+      floatingActionButton: isSelected
           ? FloatingActionButton.extended(
               onPressed: () {
                 // navigate to group page
@@ -135,79 +134,79 @@ class _CreateGroupState extends State<CreateGroup> {
         elevation: 1,
         backgroundColor: kTertiaryColor,
       ),
-      body: ListView.builder(
-        itemBuilder: (BuildContext context, int index) {
-          // return list tile for each user according to search query
-          if (searchQuery.isEmpty) {
-            // if search query is empty, return list tile for all users
-            return ListTile(
-              title: Text(
-                users[index].name,
-                style: const TextStyle(fontSize: 16),
-              ),
-              leading: const CircleAvatar(
-                backgroundImage: AssetImage("assets/images/Profile_Image.jpg"),
-              ),
-              trailing: Checkbox(
-                value: isCheckedList[index],
-                fillColor: MaterialStateProperty.all(kTertiaryColor),
-                onChanged: (value) {
-                  setState(
-                    () {
-                      addUserToGroup(index);
-                    },
-                  );
-                },
-              ),
-            );
-          } else {
-            // if search query is not empty, return list tile only if user name contains search query
-            if (users[index].name.toLowerCase().contains(searchQuery)) {
-              return ListTile(
-                title: Text(users[index].name),
-                leading: const CircleAvatar(
-                  backgroundImage:
-                      AssetImage("assets/images/Profile_Image.jpg"),
-                ),
-                trailing: Checkbox(
-                  value: isCheckedList[index],
-                  fillColor: MaterialStateProperty.all(kTertiaryColor),
-                  onChanged: (value) {
-                    setState(
-                      () {
-                        addUserToGroup(index);
-                      },
-                    );
-                  },
-                ),
-              );
-            } else {
-              return const SizedBox();
-            }
-          }
-        },
-        itemCount: users.length,
-      ),
+      // body: ListView.builder(
+      //   itemBuilder: (BuildContext context, int index) {
+      //     // return list tile for each user according to search query
+      //     if (searchQuery.isEmpty) {
+      //       // if search query is empty, return list tile for all users
+      //       return ListTile(
+      //         title: Text(
+      //           "name",
+      //           style: const TextStyle(fontSize: 16),
+      //         ),
+      //         leading: const CircleAvatar(
+      //           backgroundImage: AssetImage("assets/images/Profile_Image.jpg"),
+      //         ),
+      //         trailing: Checkbox(
+      //           value: isCheckedList[index],
+      //           fillColor: MaterialStateProperty.all(kTertiaryColor),
+      //           onChanged: (value) {
+      //             setState(
+      //               () {
+      //                 addUserToGroup(index);
+      //               },
+      //             );
+      //           },
+      //         ),
+      //       );
+      //     } else {
+      //       // if search query is not empty, return list tile only if user name contains search query
+      //       if (users[index].name.toLowerCase().contains(searchQuery)) {
+      //         return ListTile(
+      //           title: Text(users[index].name),
+      //           leading: const CircleAvatar(
+      //             backgroundImage:
+      //                 AssetImage("assets/images/Profile_Image.jpg"),
+      //           ),
+      //           trailing: Checkbox(
+      //             value: isCheckedList[index],
+      //             fillColor: MaterialStateProperty.all(kTertiaryColor),
+      //             onChanged: (value) {
+      //               setState(
+      //                 () {
+      //                   addUserToGroup(index);
+      //                 },
+      //               );
+      //             },
+      //           ),
+      //         );
+      //       } else {
+      //         return const SizedBox();
+      //       }
+      //     }
+      //   },
+      //   itemCount: users.length,
+      // ),
     );
   }
 
-  void addUserToGroup(int index) {
-    if (isCheckedList[index] == false) {
-      // add user to group
-      usersOfGroup.add(users[index]);
-      isCheckedList[index] = true;
-    } else {
-      // remove user from group
-      usersOfGroup.remove(users[index]);
-      isCheckedList[index] = false;
-    }
+  // void addUserToGroup(int index) {
+  //   if (isCheckedList[index] == false) {
+  //     // add user to group
+  //     usersOfGroup.add(users[index]);
+  //     isCheckedList[index] = true;
+  //   } else {
+  //     // remove user from group
+  //     usersOfGroup.remove(users[index]);
+  //     isCheckedList[index] = false;
+  //   }
 
-    if (isCheckedList.contains(true)) {
-      // if at least one user is selected, show floating action button
-      _isSelected = true;
-    } else {
-      // if no user is selected, hide floating action button
-      _isSelected = false;
-    }
-  }
+  //   if (isCheckedList.contains(true)) {
+  //     // if at least one user is selected, show floating action button
+  //     _isSelected = true;
+  //   } else {
+  //     // if no user is selected, hide floating action button
+  //     _isSelected = false;
+  //   }
+  // }
 }

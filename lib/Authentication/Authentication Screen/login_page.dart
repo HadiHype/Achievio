@@ -1,11 +1,9 @@
+import 'package:achievio/Authentication/Authentication%20Screen/signup_page.dart';
+import 'package:achievio/Navigation%20Pages/navigation.dart';
 import 'package:achievio/User%20Interface/app_colors.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
-import 'package:google_fonts/google_fonts.dart';
-// ignore: depend_on_referenced_packages
-import 'package:firebase_core/firebase_core.dart';
-import 'package:achievio/Navigation Pages/Home/home_page.dart';
+
 import 'package:modal_progress_hud_nsn/modal_progress_hud_nsn.dart';
 
 import '../Authentication Logic/auth_logic.dart';
@@ -45,12 +43,7 @@ class _LoginScreenState extends State<LoginScreen> {
   bool showSpinner = false;
   final _auth = FirebaseAuth.instance;
   final Auth auth = Auth();
-
-  @override
-  void initState() {
-    // TODO: implement initState
-    print('initState');
-  }
+  bool showPassword = false;
 
   @override
   Widget build(BuildContext context) {
@@ -62,9 +55,8 @@ class _LoginScreenState extends State<LoginScreen> {
       backgroundColor: Colors.white,
       body: ModalProgressHUD(
         inAsyncCall: showSpinner,
-        color: const Color(0xFF4169E1),
         child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 24.0),
+          padding: const EdgeInsets.symmetric(horizontal: 18.0),
           child: SizedBox(
             height: screenHeight - keyboardHeight,
             child: Center(
@@ -151,24 +143,38 @@ class _LoginScreenState extends State<LoginScreen> {
                     TextField(
                       focusNode: focusNodePassword,
                       controller: _passwordController,
+                      obscureText: true,
                       onTapOutside: ((event) => focusNodePassword.unfocus()),
                       onChanged: (value) {
                         setState(() {
                           password = value;
                         });
                       },
-                      decoration: const InputDecoration(
+                      decoration: InputDecoration(
                         // isDense: true,
-                        contentPadding:
-                            EdgeInsets.symmetric(horizontal: 10, vertical: 0),
+                        contentPadding: const EdgeInsets.symmetric(
+                            horizontal: 10, vertical: 0),
                         hintText: 'password123!',
-                        hintStyle: TextStyle(
+                        hintStyle: const TextStyle(
                           color: Colors.black45,
                           fontSize: 16,
                           fontWeight: FontWeight.w400,
                         ),
-                        fillColor: Color(0xFFF5F5F5),
-                        focusedBorder: OutlineInputBorder(
+                        suffixIcon: IconButton(
+                          onPressed: () {
+                            setState(() {
+                              showPassword = !showPassword;
+                            });
+                          },
+                          icon: Icon(
+                            showPassword
+                                ? Icons.visibility
+                                : Icons.visibility_off,
+                            color: Colors.black,
+                          ),
+                        ),
+                        fillColor: const Color(0xFFF5F5F5),
+                        focusedBorder: const OutlineInputBorder(
                           borderRadius: BorderRadius.all(
                             Radius.circular(6),
                           ),
@@ -177,7 +183,7 @@ class _LoginScreenState extends State<LoginScreen> {
                             width: 2,
                           ),
                         ),
-                        enabledBorder: OutlineInputBorder(
+                        enabledBorder: const OutlineInputBorder(
                           borderRadius: BorderRadius.all(
                             Radius.circular(6),
                           ),
@@ -187,7 +193,7 @@ class _LoginScreenState extends State<LoginScreen> {
                           ),
                         ),
                         filled: true,
-                        border: OutlineInputBorder(
+                        border: const OutlineInputBorder(
                           borderRadius: BorderRadius.all(
                             Radius.circular(6),
                           ),
@@ -210,7 +216,13 @@ class _LoginScreenState extends State<LoginScreen> {
                                   email: _emailController.text,
                                   password: _passwordController.text,
                                 );
-                                Navigator.pushNamed(context, '/nav');
+                                if (!mounted) {
+                                  return;
+                                }
+                                Navigator.pushAndRemoveUntil(context,
+                                    MaterialPageRoute(builder: (context) {
+                                  return const NavPage();
+                                }), (route) => false);
                               } on FirebaseAuthException catch (e) {
                                 if (e.code == 'user-not-found') {
                                   // return popup message
@@ -313,7 +325,17 @@ class _LoginScreenState extends State<LoginScreen> {
                         ),
                         TextButton(
                           onPressed: () {
-                            Navigator.pushNamed(context, '/register');
+                            Navigator.pushAndRemoveUntil(
+                                context,
+                                PageRouteBuilder(
+                                    transitionDuration:
+                                        const Duration(milliseconds: 250),
+                                    transitionsBuilder: (_, a, __, c) =>
+                                        FadeTransition(opacity: a, child: c),
+                                    pageBuilder: (context, a, b) {
+                                      return const SignUpScreen();
+                                    }),
+                                (route) => false);
                           },
                           style: TextButton.styleFrom(
                             minimumSize: Size.zero,
