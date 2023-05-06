@@ -52,7 +52,7 @@ class _NavPageState extends State<NavPage> {
                   : const Icon(Icons.home_outlined, size: 31),
             ),
             BottomNavigationBarItem(
-              label: "Discover",
+              label: "Alerts",
               icon: currentIndex == 1
                   ? const Icon(Icons.notifications, size: 31)
                   : const Icon(Icons.notifications_none_outlined, size: 31),

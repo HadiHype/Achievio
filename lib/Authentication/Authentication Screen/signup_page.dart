@@ -254,25 +254,25 @@ class _SignUpScreenState extends State<SignUpScreen> {
                                                 password: password);
                                         var db = FirebaseFirestore.instance;
 
-                                        await db
-                                            .collection('users')
-                                            .doc(newUser.user!.uid)
-                                            .set({
-                                          'email': email,
-                                          'password': password,
-                                          'uid': newUser.user!.uid,
-                                          'gender': "",
-                                          'dateofbirth': "",
-                                          'username': "",
-                                          'profilePicture': "",
-                                          'friends': [],
-                                          'dateCreated':
-                                              DateTime.now().toString(),
-                                          'dateUpdated':
-                                              DateTime.now().toString(),
-                                          'dateLastLogin':
-                                              DateTime.now().toString(),
-                                        });
+                                        // await db
+                                        //     .collection('users')
+                                        //     .doc(newUser.user!.uid)
+                                        //     .set({
+                                        //   'email': email,
+                                        //   'password': password,
+                                        //   'uid': newUser.user!.uid,
+                                        //   'gender': "",
+                                        //   'dateofbirth': "",
+                                        //   'username': "",
+                                        //   'profilePicture': "",
+                                        //   'friends': [],
+                                        //   'dateCreated':
+                                        //       DateTime.now().toString(),
+                                        //   'dateUpdated':
+                                        //       DateTime.now().toString(),
+                                        //   'dateLastLogin':
+                                        //       DateTime.now().toString(),
+                                        // });
 
                                         if (!mounted) return;
 
@@ -282,7 +282,11 @@ class _SignUpScreenState extends State<SignUpScreen> {
                                                 pageBuilder: (context,
                                                         animation,
                                                         secondaryAnimation) =>
-                                                    const AdditionalSignUpScreen(),
+                                                    AdditionalSignUpScreen(
+                                                      email: email,
+                                                      password: password,
+                                                      uid: newUser.user!.uid,
+                                                    ),
                                                 transitionsBuilder: (context,
                                                     animation,
                                                     secondaryAnimation,

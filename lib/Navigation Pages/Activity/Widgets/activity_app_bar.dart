@@ -9,37 +9,15 @@ class ActivityAppBar extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return SliverAppBar(
+    return const SliverAppBar(
       centerTitle: true,
-      automaticallyImplyLeading: false,
-      flexibleSpace: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-        children: [
-          const Padding(
-            padding: EdgeInsets.only(top: 10, left: 10),
-            child: Text(
-              "Activity",
-              style: TextStyle(
-                fontSize: 28,
-                fontWeight: FontWeight.bold,
-                color: kTitleColor,
-              ),
-            ),
-          ),
-          IconButton(
-            onPressed: () {},
-            padding: const EdgeInsets.only(top: 5),
-            splashColor: kLightSecondaryColor,
-            highlightColor: Colors.transparent,
-            hoverColor: Colors.transparent,
-            splashRadius: 20,
-            icon: const Icon(
-              Icons.filter_list_rounded,
-              color: kBlueGreyColor,
-              size: 28,
-            ),
-          ),
-        ],
+      title: Text(
+        "Activity",
+        style: TextStyle(
+          fontSize: 28,
+          fontWeight: FontWeight.bold,
+          color: kTitleColor,
+        ),
       ),
       pinned: true,
       expandedHeight: 55,

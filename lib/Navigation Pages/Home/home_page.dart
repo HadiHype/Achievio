@@ -26,6 +26,7 @@ class _HomePageState extends State<HomePage> {
   FocusNode focusNode = FocusNode();
   TextEditingController controller = TextEditingController();
   final GlobalKey<ScaffoldState> _key = GlobalKey();
+  List<GroupCard> groupCardsStarred = <GroupCard>[];
   List<GroupCard> groupCardsSorted = <GroupCard>[];
   Auth auth = Auth();
   final authUser = FirebaseAuth.instance;
@@ -38,6 +39,31 @@ class _HomePageState extends State<HomePage> {
 
   // List of all the users friends
   List<UserData> friends = <UserData>[];
+
+  void handleStarToggle(int index, bool isStarredd) {
+    setState(() {
+      isStarred[index] = isStarredd;
+
+      if (isStarredd) {
+        var temp = groupCards.removeAt(index);
+
+        groupCards.insert(0, temp);
+      } else {
+        var temp = groupCards.removeAt(index);
+        // add the group card after being unstarred to the bottom of the last starred group card
+        for (int i = 0; i < groupCards.length; i++) {
+          if (groupCards[i].isStarred == false) {
+            groupCards.insert(i, temp);
+            break;
+          }
+        }
+      }
+
+      for (int i = 0; i < groupCards.length; i++) {
+        groupCards[i].index = i;
+      }
+    });
+  }
 
   @override
   void initState() {
@@ -56,36 +82,38 @@ class _HomePageState extends State<HomePage> {
             index: i,
             profilePic: 'assets/images/Profile_Pic.jpg',
             isArchived: isArchived[i],
+            groupCardsStarred: groupCardsStarred,
+            handleStarToggle: handleStarToggle,
           ),
         );
       }
-
-      // get the data from the database according to uid
-      FirebaseFirestore.instance
-          .collection('users')
-          .doc(user!.uid)
-          .get()
-          .then((value) {
-        currUser = UserData.fromMap(value.data()!);
-
-        // get the friends of the user
-        for (int i = 0; i < currUser.friends.length; i++) {
-          FirebaseFirestore.instance
-              .collection('users')
-              .doc(currUser.friends[i])
-              .get()
-              .then((value) {
-            UserData tempUser = UserData.fromMap(value.data()!);
-            friends.add(tempUser);
-            print(friends.length);
-          });
-        }
-
-        setState(() {});
-      });
-
-      defined = true;
     }
+
+    // get the data from the database according to uid
+    FirebaseFirestore.instance
+        .collection('users')
+        .doc(user!.uid)
+        .get()
+        .then((value) {
+      currUser = UserData.fromMap(value.data()!);
+
+      // get the friends of the user
+      for (int i = 0; i < currUser.friends.length; i++) {
+        FirebaseFirestore.instance
+            .collection('users')
+            .doc(currUser.friends[i])
+            .get()
+            .then((value) {
+          UserData tempUser = UserData.fromMap(value.data()!);
+          friends.add(tempUser);
+          print(friends.length);
+        });
+      }
+
+      setState(() {});
+    });
+
+    defined = true;
 
     for (int i = 0; i < groupCards.length; i++) {
       if (groupCards[i].isArchived == false) {
@@ -121,7 +149,6 @@ class _HomePageState extends State<HomePage> {
           .get()
           .then((value) {
         currUser = UserData.fromMap(value.data()!);
-        setState(() {});
       });
     });
 
@@ -133,8 +160,7 @@ class _HomePageState extends State<HomePage> {
 
       // swipe right to open drawer
       onHorizontalDragEnd: (details) {
-        FocusScope.of(context).unfocus();
-        if (details.primaryVelocity! > 0) {
+        if (details.primaryVelocity! > 0.5) {
           _key.currentState!.openDrawer();
         }
       },
@@ -144,194 +170,203 @@ class _HomePageState extends State<HomePage> {
           drawer: NavDrawer(
             username: username ?? "",
             profilePic: profilePic ?? "",
+            friendsList: friends,
           ),
           // hide the drawer icon
-          drawerEnableOpenDragGesture: false,
+          drawerEnableOpenDragGesture: true,
           // No appbar provided to the Scaffold, only a body with a
           // CustomScrollView.
           backgroundColor: kBackgroundColor,
-          body: StatefulBuilder(
-            builder: (context, setState) => CustomScrollView(
-              // remove splash color
-              physics: const BouncingScrollPhysics(
-                parent: AlwaysScrollableScrollPhysics(),
-              ),
-              slivers: [
-                // Upper sliver app bar that is responsible for the app title, user profile picture, and drawer logic
-                SliverAppBar(
-                  leading: Container(),
-                  flexibleSpace: Column(
-                    children: [
-                      Column(
-                        children: [
-                          Row(
-                            children: [
-                              buildHeader(
-                                name: username,
-                                urlImage: profilePic,
-                              ),
-                              buildTitle(username: username),
-                            ],
-                          ),
-                        ],
-                      ),
-                    ],
-                  ),
-                  floating: true,
-                  expandedHeight: 70,
-                  toolbarHeight: 70,
-                  // backgroundColor: const Color.fromARGB(255, 233, 241, 250),
-                  backgroundColor: Colors.white70,
-                  elevation: 0,
+          body: CustomScrollView(
+            // remove splash color
+            physics: const BouncingScrollPhysics(
+              parent: AlwaysScrollableScrollPhysics(),
+            ),
+            slivers: [
+              // Upper sliver app bar that is responsible for the app title, user profile picture, and drawer logic
+              SliverAppBar(
+                leading: Container(),
+                flexibleSpace: Column(
+                  children: [
+                    Column(
+                      children: [
+                        Row(
+                          children: [
+                            buildHeader(
+                              name: username,
+                              urlImage: profilePic,
+                            ),
+                            buildTitle(username: username),
+                          ],
+                        ),
+                      ],
+                    ),
+                  ],
                 ),
+                floating: true,
+                expandedHeight: 70,
+                toolbarHeight: 70,
+                // backgroundColor: const Color.fromARGB(255, 233, 241, 250),
+                backgroundColor: Colors.white70,
+                elevation: 0,
+              ),
 
-                // Lower sliver that is responsible for the search bar and the logic behind it.
-                // Also, it is responsible for the sorting of the group cards
-                // LowerSliver(
-                //     focusNode: focusNode,
-                //     controller: controller,
-                //     groupCardsSorted: groupCardsSorted),
-                SliverAppBar(
-                  leading: Container(),
-                  flexibleSpace: Column(
-                    children: [
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: [
-                          Padding(
-                            padding: const EdgeInsets.only(top: 15),
-                            child: Container(
-                              width: MediaQuery.of(context).size.width * 0.8,
-                              height: 40,
-                              decoration: const BoxDecoration(
-                                color: Colors.white,
-                                borderRadius: BorderRadius.only(
-                                  topRight: Radius.circular(10),
-                                  bottomRight: Radius.circular(10),
-                                ),
-                              ),
-                              child: CustomTextField(
-                                focusNode: focusNode,
-                                controller: controller,
-                                groupCards: groupCards,
+              // Lower sliver that is responsible for the search bar and the logic behind it.
+              // Also, it is responsible for the sorting of the group cards
+              // LowerSliver(
+              //     focusNode: focusNode,
+              //     controller: controller,
+              //     groupCardsSorted: groupCardsSorted),
+              SliverAppBar(
+                leading: Container(),
+                flexibleSpace: Column(
+                  children: [
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Padding(
+                          padding: const EdgeInsets.only(top: 15),
+                          child: Container(
+                            width: MediaQuery.of(context).size.width * 0.8,
+                            height: 40,
+                            decoration: const BoxDecoration(
+                              color: Colors.white,
+                              borderRadius: BorderRadius.only(
+                                topRight: Radius.circular(10),
+                                bottomRight: Radius.circular(10),
                               ),
                             ),
-                          ),
-                          // filter Icon button
-                          Padding(
-                            padding: const EdgeInsets.only(top: 10, right: 10),
-                            child: IconButton(
-                              padding: const EdgeInsets.all(0),
-                              onPressed: () {
-                                showModalBottomSheet(
-                                  context: context,
-                                  isScrollControlled: true,
-
-                                  // increase height
-                                  shape: const RoundedRectangleBorder(
-                                    borderRadius: BorderRadius.only(
-                                      topLeft: Radius.circular(10),
-                                      topRight: Radius.circular(10),
-                                    ),
-                                  ),
-                                  builder: (context) {
-                                    // create a bottom sheet that shows the filter options
-                                    return const ModelSheetContainer();
-                                  },
-                                ).then(
-                                  (value) => setState(
-                                    () {
-                                      refreshPage();
-                                    },
-                                  ),
-                                );
-                              },
-                              splashColor: kLightSecondaryColor,
-                              highlightColor: Colors.transparent,
-                              hoverColor: Colors.transparent,
-                              splashRadius: 20,
-                              icon: const Icon(
-                                Icons.filter_list_rounded,
-                                color: kBlueGreyColor,
-                                size: 28,
-                              ),
+                            child: CustomTextField(
+                              focusNode: focusNode,
+                              controller: controller,
+                              groupCards: groupCards,
                             ),
-                          )
-                        ],
-                      ),
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: [
-                          CustomTextButton(
-                            stringText: "Archived Groups",
-                            onPressed: (() {
-                              // Navigator.pushReplacement(
-                              //   context,
-                              //   MaterialPageRoute(
-                              //     builder: (context) => const ArchivePage(),
-                              //   ),
-                              // );
-                              Navigator.push(
-                                context,
-                                MaterialPageRoute(
-                                  builder: (context) => const ArchivePage(),
-                                ),
-                              );
-                            }),
-                            padding: const EdgeInsets.only(left: 10),
                           ),
-                          CustomTextButton(
-                            stringText: "Create Group",
+                        ),
+                        // filter Icon button
+                        Padding(
+                          padding: const EdgeInsets.only(top: 10, right: 10),
+                          child: IconButton(
+                            padding: const EdgeInsets.all(0),
                             onPressed: () {
-                              Navigator.push(
-                                context,
-                                MaterialPageRoute(
-                                  builder: (context) => const CreateGroup(),
+                              showModalBottomSheet(
+                                context: context,
+                                isScrollControlled: true,
+
+                                // increase height
+                                shape: const RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.only(
+                                    topLeft: Radius.circular(10),
+                                    topRight: Radius.circular(10),
+                                  ),
+                                ),
+                                builder: (context) {
+                                  // create a bottom sheet that shows the filter options
+                                  return const ModelSheetContainer();
+                                },
+                              ).then(
+                                (value) => setState(
+                                  () {
+                                    refreshPage();
+                                  },
                                 ),
                               );
                             },
-                            padding: const EdgeInsets.only(right: 10),
+                            splashColor: kLightSecondaryColor,
+                            highlightColor: Colors.transparent,
+                            hoverColor: Colors.transparent,
+                            splashRadius: 20,
+                            icon: const Icon(
+                              Icons.filter_list_rounded,
+                              color: kBlueGreyColor,
+                              size: 28,
+                            ),
                           ),
-                        ],
-                      ),
-                    ],
-                  ),
-                  shape: const RoundedRectangleBorder(
-                    borderRadius: BorderRadius.only(
-                      bottomLeft: Radius.circular(10),
-                      bottomRight: Radius.circular(10),
+                        )
+                      ],
                     ),
-                  ),
-                  expandedHeight: 60,
-                  toolbarHeight: 106,
-                  backgroundColor: Colors.white70,
-                  elevation: 0,
-                  pinned: true,
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        CustomTextButton(
+                          stringText: "Archived Groups",
+                          onPressed: (() {
+                            // Navigator.pushReplacement(
+                            //   context,
+                            //   MaterialPageRoute(
+                            //     builder: (context) => const ArchivePage(),
+                            //   ),
+                            // );
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder: (context) => const ArchivePage(),
+                              ),
+                            );
+                          }),
+                          padding: const EdgeInsets.only(left: 10),
+                        ),
+                        CustomTextButton(
+                          stringText: "Create Group",
+                          onPressed: () {
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder: (context) => const CreateGroup(),
+                              ),
+                            );
+                          },
+                          padding: const EdgeInsets.only(right: 10),
+                        ),
+                      ],
+                    ),
+                  ],
                 ),
+                shape: const RoundedRectangleBorder(
+                  borderRadius: BorderRadius.only(
+                    bottomLeft: Radius.circular(10),
+                    bottomRight: Radius.circular(10),
+                  ),
+                ),
+                expandedHeight: 60,
+                toolbarHeight: 106,
+                backgroundColor: Colors.white70,
+                elevation: 0,
+                pinned: true,
+              ),
 
-                // SliverToBoxAdapter(
-                //   // button to log out
-                //   child: Container(
-                //     margin: const EdgeInsets.only(top: 20),
-                //     child: ElevatedButton(
-                //       onPressed: () {
-                //         // log out
-                //         auth.signOut();
-                //         Navigator.pushAndRemoveUntil(context, MaterialPageRoute(
-                //           builder: (context) {
-                //             return const LoginScreen();
-                //           },
-                //         ), (route) => false);
-                //       },
-                //       child: const Text('Log Out'),
-                //     ),
-                //   ),
-                // ),
+              // SliverToBoxAdapter(
+              //   // button to log out
+              //   child: Container(
+              //     margin: const EdgeInsets.only(top: 20),
+              //     child: ElevatedButton(
+              //       onPressed: () {
+              //         // log out
+              //         // auth.signOut();
+              //         // Navigator.pushAndRemoveUntil(context, MaterialPageRoute(
+              //         //   builder: (context) {
+              //         //     return const LoginScreen();
+              //         //   },
+              //         // ), (route) => false);
 
-                // A sliver list layout of cards that changes based on the search, archiving, filtering, and sorting.
-                ListLayout(groupCardsSorted: groupCardsSorted),
-              ],
-            ),
+              //         // add a friend to the database and the current user's friend list
+              //         FirebaseFirestore.instance
+              //             .collection('users')
+              //             .doc(authUser.currentUser!.uid)
+              //             .update({
+              //           'friends': FieldValue.arrayUnion(
+              //               ['RapMr9QcHiUUyqV2GIzsmp2eOeu2'])
+              //         });
+              //       },
+              //       child: const Text('Log Out'),
+              //     ),
+              //   ),
+              // ),
+
+              // A sliver list layout of cards that changes based on the search, archiving, filtering, and sorting.
+
+              ListLayout(groupCardsSorted: groupCardsSorted),
+            ],
           ),
         ),
       ),
@@ -399,6 +434,10 @@ class _HomePageState extends State<HomePage> {
             onTap: () {
               _key.currentState!.openDrawer();
               FocusScope.of(context).unfocus();
+            },
+            // on hold preview image
+            onLongPress: () {
+              // preview a larger image as a hero animation
             },
             child: Padding(
               padding: const EdgeInsets.only(left: 20, top: 20, right: 20),

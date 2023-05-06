@@ -91,10 +91,10 @@ class MyApp extends StatelessWidget {
           case '/register':
             return MaterialPageRoute(
                 builder: (context) => const SignUpScreen(), settings: settings);
-          case '/secondsignup':
-            return MaterialPageRoute(
-                builder: (context) => const AdditionalSignUpScreen(),
-                settings: settings);
+          // case '/secondsignup':
+          //   return MaterialPageRoute(
+          //       builder: (context) => const AdditionalSignUpScreen(),
+          //       settings: settings);
         }
         return null;
       }),
@@ -105,7 +105,7 @@ class MyApp extends StatelessWidget {
         '/activity': (context) => const ActivityPage(),
         '/login': (context) => const LoginScreen(),
         '/register': (context) => const SignUpScreen(),
-        '/secondsignup': (context) => const AdditionalSignUpScreen(),
+        // '/secondsignup': (context) => const AdditionalSignUpScreen(),
       },
       initialRoute: route,
     );

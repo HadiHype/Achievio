@@ -18,7 +18,15 @@ import '../../User Interface/app_colors.dart';
 import '../Authentication Logic/auth_logic.dart';
 
 class AdditionalSignUpScreen extends StatefulWidget {
-  const AdditionalSignUpScreen({super.key});
+  const AdditionalSignUpScreen(
+      {required this.email,
+      required this.password,
+      required this.uid,
+      super.key});
+
+  final String email;
+  final String password;
+  final String uid;
 
   @override
   State<AdditionalSignUpScreen> createState() => _AdditionalSignUpScreenState();
@@ -591,26 +599,47 @@ class _AdditionalSignUpScreenState extends State<AdditionalSignUpScreen> {
                                             .child(
                                                 '${FirebaseAuth.instance.currentUser?.uid}');
 
-                                        UploadTask uploadTask =
-                                            ref.putFile(_pickedImage!);
-                                        final snapshot = await uploadTask
-                                            .whenComplete(() => null);
+                                        // UploadTask uploadTask =
+                                        //     ref.putFile(_pickedImage!);
+                                        // final snapshot = await uploadTask
+                                        //     .whenComplete(() => null);
 
-                                        final downloadUrl =
-                                            await snapshot.ref.getDownloadURL();
+                                        // final downloadUrl =
+                                        //     await snapshot.ref.getDownloadURL();
 
                                         var db = FirebaseFirestore.instance;
 
                                         await db
                                             .collection('users')
-                                            .doc(_auth.currentUser!.uid)
-                                            .update({
+                                            .doc(widget.uid)
+                                            .set({
+                                          'email': widget.email,
+                                          'password': widget.password,
+                                          'uid': widget.uid,
                                           'gender': _genderController.text,
                                           'dateofbirth':
                                               _dateOfBirthController.text,
                                           'username': username,
-                                          'profilePicture': downloadUrl,
+                                          // 'profilePicture': downloadUrl,
+                                          'friends': [],
+                                          'dateCreated':
+                                              DateTime.now().toString(),
+                                          'dateUpdated':
+                                              DateTime.now().toString(),
+                                          'dateLastLogin':
+                                              DateTime.now().toString(),
                                         });
+
+                                        // await db
+                                        //     .collection('users')
+                                        //     .doc(_auth.currentUser!.uid)
+                                        //     .update({
+                                        //   'gender': _genderController.text,
+                                        //   'dateofbirth':
+                                        //       _dateOfBirthController.text,
+                                        //   'username': username,
+                                        //   'profilePicture': downloadUrl,
+                                        // });
                                       } on FirebaseAuthException catch (e) {
                                         if (e.code == 'user-not-found') {
                                           // return popup message

@@ -13,10 +13,12 @@ class GroupCard extends StatefulWidget {
     required this.subTitle,
     required this.numbOfTasksAssigned,
     required this.visible,
-    required this.groupCards,
     required this.index,
     required this.profilePic,
     required this.isArchived,
+    required this.groupCards,
+    required this.groupCardsStarred,
+    required this.handleStarToggle,
   });
 
   String title;
@@ -25,9 +27,11 @@ class GroupCard extends StatefulWidget {
   int numbOfTasksAssigned;
   bool visible;
   final List<GroupCard> groupCards;
+  final List<GroupCard> groupCardsStarred;
   int index;
   String profilePic;
   bool isArchived;
+  final void Function(int index, bool isStarred) handleStarToggle;
 
   @override
   State<GroupCard> createState() => _GroupCardState();
@@ -90,38 +94,40 @@ class _GroupCardState extends State<GroupCard> {
                                   GestureDetector(
                                     // on tap change icon to filled star for specific index
                                     onTap: () {
+                                      widget.handleStarToggle(
+                                          widget.index, !widget.isStarred);
                                       setState(() {
+                                        // // put the group card after being starred to the top of the list
                                         widget.isStarred = !widget.isStarred;
-                                        isStarred[widget.index] =
-                                            widget.isStarred;
-                                        // put the group card after being starred to the top of the list
-                                        if (widget.isStarred) {
-                                          var temp = widget.groupCards
-                                              .removeAt(widget.index);
 
-                                          widget.groupCards.insert(0, temp);
-                                        } else {
-                                          var temp = widget.groupCards
-                                              .removeAt(widget.index);
-                                          // add the group card after being unstarred to the bottom of the last starred group card
-                                          for (int i = 0;
-                                              i < widget.groupCards.length;
-                                              i++) {
-                                            if (widget
-                                                    .groupCards[i].isStarred ==
-                                                false) {
-                                              widget.groupCards.insert(i, temp);
-                                              break;
-                                            }
-                                          }
-                                        }
+                                        // //   // put the group card after being starred to the top of the list
+                                        // //   if (widget.isStarred) {
+                                        // //     var temp = widget.groupCards
+                                        // //         .removeAt(widget.index);
 
-                                        // update the index of the group cards
-                                        for (int i = 0;
-                                            i < widget.groupCards.length;
-                                            i++) {
-                                          widget.groupCards[i].index = i;
-                                        }
+                                        // //     widget.groupCards.insert(0, temp);
+                                        // //   } else {
+                                        // //     var temp = widget.groupCards
+                                        // //         .removeAt(widget.index);
+                                        // //     // add the group card after being unstarred to the bottom of the last starred group card
+                                        // //     for (int i = 0;
+                                        // //         i < widget.groupCards.length;
+                                        // //         i++) {
+                                        // //       if (widget
+                                        // //               .groupCards[i].isStarred ==
+                                        // //           false) {
+                                        // //         widget.groupCards.insert(i, temp);
+                                        // //         break;
+                                        // //       }
+                                        // //     }
+                                        // //   }
+
+                                        // //   // update the index of the group cards
+                                        // for (int i = 0;
+                                        //     i < widget.groupCards.length;
+                                        //     i++) {
+                                        //   widget.groupCards[i].index = i;
+                                        // }
                                       });
                                     },
 

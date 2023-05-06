@@ -1,16 +1,20 @@
+import 'package:achievio/Models/userinfo.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 
 import '../../../User Interface/app_colors.dart';
+import '../../friends/friends_page.dart';
 
 class NavDrawer extends StatelessWidget {
   final String username;
   final String? profilePic;
+  final List<UserData> friendsList;
 
   const NavDrawer({
     required this.username,
     super.key,
     required this.profilePic,
+    required this.friendsList,
   });
 
   @override
@@ -163,7 +167,13 @@ class NavDrawer extends StatelessWidget {
                     kGreyColor.withOpacity(0.1),
                   ),
                 ),
-                onPressed: () {},
+                onPressed: () {
+                  Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                          builder: (context) =>
+                              Friends(friendList: friendsList)));
+                },
                 child: Padding(
                   padding: const EdgeInsets.only(left: 3.5),
                   child: Row(

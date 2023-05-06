@@ -1,6 +1,10 @@
 import 'package:achievio/User%20Interface/app_colors.dart';
+import 'package:cached_network_image/cached_network_image.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 
+import '../../Models/userinfo.dart';
 import '../../User Interface/variables.dart';
 import 'Widgets/activity_app_bar.dart';
 
@@ -12,6 +16,30 @@ class ActivityPage extends StatefulWidget {
 }
 
 class _ActivityPageState extends State<ActivityPage> {
+  String listShow = "Notifications";
+
+  final authUser = FirebaseAuth.instance;
+
+  @override
+  void initState() {
+    // TODO: implement initState
+    // get friend requests of the user
+    // FirebaseFirestore.instance
+    //     .collection("users")
+    //     .doc(authUser.currentUser!.uid)
+    //     .collection("friendRequests")
+    //     .snapshots()
+    //     .listen((event) {
+    //   setState(() {
+    //     friendRequests = event.docs;
+    //   });
+    // });
+
+    // get notifications of the user
+
+    super.initState();
+  }
+
   @override
   Widget build(BuildContext context) {
     final now = DateTime.now();
@@ -128,10 +156,10 @@ class _ActivityPageState extends State<ActivityPage> {
           : Container();
     }
 
-    return Scaffold(
-      backgroundColor: kBackgroundColor,
-      body: SafeArea(
-        child: RefreshIndicator(
+    return SafeArea(
+      child: Scaffold(
+        backgroundColor: kBackgroundColor,
+        body: RefreshIndicator(
           onRefresh: () async {
             await Future.delayed(const Duration(seconds: 1));
             setState(() {});
@@ -143,27 +171,278 @@ class _ActivityPageState extends State<ActivityPage> {
             clipBehavior: Clip.antiAliasWithSaveLayer,
             slivers: [
               const ActivityAppBar(),
+              // sliverappbar to change the view of the sliverlist
 
-              // Build the list with groups of items
-              SliverList(
-                delegate: SliverChildListDelegate(
-                  [
-                    const SizedBox(
-                      height: 10,
-                    ),
-                    buildGroup("Today", todayList),
-                    buildGroup("This Week", thisWeekList),
-                    buildGroup("Yesterday", yesterdayList),
-                    buildGroup("Last Week", lastWeekList),
-                    buildGroup("This Month", thisMonthList),
-                    buildGroup("Earlier", earlierList)
-                  ],
+              SliverAppBar(
+                pinned: true,
+                expandedHeight: 45,
+                toolbarHeight: 45,
+                backgroundColor: Colors.white70,
+                elevation: 0,
+                flexibleSpace: Center(
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                    children: [
+                      TextButton(
+                        onPressed: () {
+                          setState(() {
+                            listShow = "Friend Requests";
+                            print(listShow);
+                          });
+                        },
+                        child: Text(
+                          "Friend Requests",
+                          style: TextStyle(
+                            fontSize: 16,
+                            fontWeight: listShow == "Friend Requests"
+                                ? FontWeight.w600
+                                : FontWeight.w400,
+                            color: listShow == "Friend Requests"
+                                ? kTitleColor
+                                : kBlueGreyColor,
+                          ),
+                        ),
+                      ),
+                      TextButton(
+                        onPressed: () {
+                          setState(() {
+                            listShow = "Notifications";
+                            print(listShow);
+                          });
+                        },
+                        child: Text(
+                          "Notifications",
+                          style: TextStyle(
+                            fontSize: 16,
+                            fontWeight: listShow == "Notifications"
+                                ? FontWeight.w600
+                                : FontWeight.w400,
+                            color: listShow == "Notifications"
+                                ? kTitleColor
+                                : kBlueGreyColor,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
                 ),
               ),
+
+              // Build the list with groups of items
+
+              listShow == "Notifications"
+                  ? SliverList(
+                      delegate: SliverChildListDelegate(
+                        [
+                          const SizedBox(
+                            height: 10,
+                          ),
+                          buildGroup("Today", todayList),
+                          buildGroup("This Week", thisWeekList),
+                          buildGroup("Yesterday", yesterdayList),
+                          buildGroup("Last Week", lastWeekList),
+                          buildGroup("This Month", thisMonthList),
+                          buildGroup("Earlier", earlierList)
+                        ],
+                      ),
+                    )
+                  : FutureBuilder<dynamic>(
+                      future: getFriendRequests(),
+                      builder: (BuildContext context, snapshot) {
+                        if (snapshot.data == null) {
+                          return const SliverToBoxAdapter(
+                            child: Center(
+                              child: Text("No Friend Requests"),
+                            ),
+                          );
+                        }
+
+                        if (snapshot.hasData) {
+                          // get the users from the friend requests list and display them in the sliverlist
+                          // Answer:
+
+                          return SliverList(
+                              delegate: SliverChildBuilderDelegate(
+                            (BuildContext context, int index) {
+                              return Padding(
+                                padding: const EdgeInsets.all(10.0),
+                                child: ListTile(
+                                  leading: ClipRRect(
+                                    borderRadius: BorderRadius.circular(50),
+                                    child: CachedNetworkImage(
+                                        imageUrl: snapshot.data?[index]
+                                            ["profilePicture"],
+                                        height: 45,
+                                        width: 45,
+                                        fit: BoxFit.cover),
+                                  ),
+                                  title: Text(
+                                    snapshot.data?[index]["username"],
+                                  ),
+                                  subtitle: Row(
+                                    children: [
+                                      Container(
+                                        height: 27.5,
+                                        width: 60,
+                                        decoration: BoxDecoration(
+                                          borderRadius:
+                                              BorderRadius.circular(10),
+                                          color: Colors.grey[300],
+                                        ),
+                                        child: TextButton(
+                                          child: const Text(
+                                            "Reject",
+                                            style: TextStyle(
+                                              color: Colors.black,
+                                              fontSize: 10,
+                                            ),
+                                          ),
+                                          onPressed: () {
+                                            // remove the user from the friend requests list of the current user
+                                            FirebaseFirestore.instance
+                                                .collection("users")
+                                                .doc(FirebaseAuth
+                                                    .instance.currentUser!.uid)
+                                                .update({
+                                              "friendRequests":
+                                                  FieldValue.arrayRemove([
+                                                snapshot.data?[index]["uid"]
+                                              ])
+                                            });
+
+                                            // remove the current user from the friend requests list of the user
+                                            FirebaseFirestore.instance
+                                                .collection("users")
+                                                .doc(snapshot.data?[index]
+                                                    ["uid"])
+                                                .update({
+                                              "friendRequests":
+                                                  FieldValue.arrayRemove([
+                                                FirebaseAuth
+                                                    .instance.currentUser!.uid
+                                              ])
+
+                                              // refresh the page
+                                            }).then((value) => setState(() {}));
+                                          },
+                                        ),
+                                      ),
+                                      SizedBox(
+                                        width: 15,
+                                      ),
+                                      Container(
+                                        height: 27.5,
+                                        width: 60,
+                                        decoration: BoxDecoration(
+                                          borderRadius:
+                                              BorderRadius.circular(10),
+                                          color: Colors.grey[300],
+                                        ),
+                                        child: TextButton(
+                                          child: const Text(
+                                            "Accept",
+                                            style: TextStyle(
+                                              color: Colors.black,
+                                              fontSize: 10,
+                                            ),
+                                          ),
+                                          onPressed: () {
+                                            // add the user to the friends list of the current user
+                                            FirebaseFirestore.instance
+                                                .collection("users")
+                                                .doc(FirebaseAuth
+                                                    .instance.currentUser!.uid)
+                                                .update({
+                                              "friends": FieldValue.arrayUnion([
+                                                snapshot.data?[index]["uid"]
+                                              ])
+                                            });
+
+                                            // add the current user to the friends list of the user
+                                            FirebaseFirestore.instance
+                                                .collection("users")
+                                                .doc(snapshot.data?[index]
+                                                    ["uid"])
+                                                .update({
+                                              "friends": FieldValue.arrayUnion([
+                                                FirebaseAuth
+                                                    .instance.currentUser!.uid
+                                              ])
+                                            });
+
+                                            // remove the user from the friend requests list of the current user
+                                            FirebaseFirestore.instance
+                                                .collection("users")
+                                                .doc(FirebaseAuth
+                                                    .instance.currentUser!.uid)
+                                                .update({
+                                              "friendRequests":
+                                                  FieldValue.arrayRemove([
+                                                snapshot.data?[index]["uid"]
+                                              ])
+                                            });
+
+                                            // remove the current user from the friend requests list of the user
+                                            FirebaseFirestore.instance
+                                                .collection("users")
+                                                .doc(snapshot.data?[index]
+                                                    ["uid"])
+                                                .update({
+                                              "friendRequests":
+                                                  FieldValue.arrayRemove([
+                                                FirebaseAuth
+                                                    .instance.currentUser!.uid
+                                              ])
+                                            }).then((value) => setState(() {}));
+                                          },
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                  trailing: null,
+                                ),
+                              );
+                            },
+                            childCount: snapshot.data?.length,
+                          ));
+                        } else {
+                          return const SliverToBoxAdapter(
+                            child: Center(
+                              child: CircularProgressIndicator(),
+                            ),
+                          );
+                        }
+                      },
+                    ),
             ],
           ),
         ),
       ),
     );
+  }
+
+  getFriendRequests() {
+    // return the snapshot of friend requests of the user which is stored in the database as a field
+    return FirebaseFirestore.instance
+        .collection("users")
+        .doc(FirebaseAuth.instance.currentUser!.uid)
+        .get()
+        .then((value) {
+      // return the list of users from the friend requests list
+      var friendRequests = value.data()!["friendRequests"];
+
+      // return all users from the friend requests list as snapshot
+      var friendRequestsSnapshot = FirebaseFirestore.instance
+          .collection("users")
+          .where(FieldPath.documentId, whereIn: friendRequests)
+          .get();
+
+      return friendRequestsSnapshot.then((value) {
+        // return the list of users from the friend requests list
+        return value.docs.map((e) => e.data()).toList();
+      }).catchError((Object error) {
+        print(error);
+      });
+    });
   }
 }

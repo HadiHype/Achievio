@@ -6,6 +6,7 @@ class UserData {
   String? gender;
   String? profilePicture;
   List<dynamic> friends;
+  List<dynamic> friendRequests;
 
   UserData({
     this.uid,
@@ -15,6 +16,7 @@ class UserData {
     this.gender,
     this.profilePicture,
     this.friends = const [],
+    this.friendRequests = const [],
   });
 
   factory UserData.fromMap(Map<String, dynamic> data) {
@@ -25,7 +27,8 @@ class UserData {
       gender: data['gender'],
       dateOfBirth: data['dateOfBirth'],
       profilePicture: data['profilePicture'],
-      friends: data['friends'],
+      friends: data['friends'] ?? [],
+      friendRequests: data['friendRequests'] ?? [],
     );
   }
 
@@ -38,6 +41,7 @@ class UserData {
       "dateOfBirth": dateOfBirth,
       "profilePicture": profilePicture,
       "friends": friends,
+      "friendRequests": friendRequests,
     };
   }
 
