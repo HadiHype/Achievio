@@ -21,26 +21,6 @@ class _ActivityPageState extends State<ActivityPage> {
   final authUser = FirebaseAuth.instance;
 
   @override
-  void initState() {
-    // TODO: implement initState
-    // get friend requests of the user
-    // FirebaseFirestore.instance
-    //     .collection("users")
-    //     .doc(authUser.currentUser!.uid)
-    //     .collection("friendRequests")
-    //     .snapshots()
-    //     .listen((event) {
-    //   setState(() {
-    //     friendRequests = event.docs;
-    //   });
-    // });
-
-    // get notifications of the user
-
-    super.initState();
-  }
-
-  @override
   Widget build(BuildContext context) {
     final now = DateTime.now();
 
@@ -304,7 +284,7 @@ class _ActivityPageState extends State<ActivityPage> {
                                                 .doc(FirebaseAuth
                                                     .instance.currentUser!.uid)
                                                 .update({
-                                              "friendRequests":
+                                              "friendRequestReceived":
                                                   FieldValue.arrayRemove([
                                                 snapshot.data?[index]["uid"]
                                               ])
@@ -316,7 +296,7 @@ class _ActivityPageState extends State<ActivityPage> {
                                                 .doc(snapshot.data?[index]
                                                     ["uid"])
                                                 .update({
-                                              "friendRequests":
+                                              "friendRequestSent":
                                                   FieldValue.arrayRemove([
                                                 FirebaseAuth
                                                     .instance.currentUser!.uid
@@ -327,7 +307,7 @@ class _ActivityPageState extends State<ActivityPage> {
                                           },
                                         ),
                                       ),
-                                      SizedBox(
+                                      const SizedBox(
                                         width: 15,
                                       ),
                                       Container(
@@ -376,7 +356,7 @@ class _ActivityPageState extends State<ActivityPage> {
                                                 .doc(FirebaseAuth
                                                     .instance.currentUser!.uid)
                                                 .update({
-                                              "friendRequests":
+                                              "friendRequestReceived":
                                                   FieldValue.arrayRemove([
                                                 snapshot.data?[index]["uid"]
                                               ])
@@ -388,7 +368,7 @@ class _ActivityPageState extends State<ActivityPage> {
                                                 .doc(snapshot.data?[index]
                                                     ["uid"])
                                                 .update({
-                                              "friendRequests":
+                                              "friendRequestSent":
                                                   FieldValue.arrayRemove([
                                                 FirebaseAuth
                                                     .instance.currentUser!.uid
@@ -422,14 +402,13 @@ class _ActivityPageState extends State<ActivityPage> {
   }
 
   getFriendRequests() {
-    // return the snapshot of friend requests of the user which is stored in the database as a field
     return FirebaseFirestore.instance
         .collection("users")
         .doc(FirebaseAuth.instance.currentUser!.uid)
         .get()
         .then((value) {
       // return the list of users from the friend requests list
-      var friendRequests = value.data()!["friendRequests"];
+      var friendRequests = value.data()!["friendRequestReceived"];
 
       // return all users from the friend requests list as snapshot
       var friendRequestsSnapshot = FirebaseFirestore.instance
@@ -439,9 +418,8 @@ class _ActivityPageState extends State<ActivityPage> {
 
       return friendRequestsSnapshot.then((value) {
         // return the list of users from the friend requests list
+        print(value.docs.map((e) => e.data()).toList());
         return value.docs.map((e) => e.data()).toList();
-      }).catchError((Object error) {
-        print(error);
       });
     });
   }

@@ -168,11 +168,8 @@ class NavDrawer extends StatelessWidget {
                   ),
                 ),
                 onPressed: () {
-                  Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                          builder: (context) =>
-                              Friends(friendList: friendsList)));
+                  Navigator.push(context,
+                      MaterialPageRoute(builder: (context) => const Friends()));
                 },
                 child: Padding(
                   padding: const EdgeInsets.only(left: 3.5),

@@ -97,37 +97,7 @@ class _GroupCardState extends State<GroupCard> {
                                       widget.handleStarToggle(
                                           widget.index, !widget.isStarred);
                                       setState(() {
-                                        // // put the group card after being starred to the top of the list
                                         widget.isStarred = !widget.isStarred;
-
-                                        // //   // put the group card after being starred to the top of the list
-                                        // //   if (widget.isStarred) {
-                                        // //     var temp = widget.groupCards
-                                        // //         .removeAt(widget.index);
-
-                                        // //     widget.groupCards.insert(0, temp);
-                                        // //   } else {
-                                        // //     var temp = widget.groupCards
-                                        // //         .removeAt(widget.index);
-                                        // //     // add the group card after being unstarred to the bottom of the last starred group card
-                                        // //     for (int i = 0;
-                                        // //         i < widget.groupCards.length;
-                                        // //         i++) {
-                                        // //       if (widget
-                                        // //               .groupCards[i].isStarred ==
-                                        // //           false) {
-                                        // //         widget.groupCards.insert(i, temp);
-                                        // //         break;
-                                        // //       }
-                                        // //     }
-                                        // //   }
-
-                                        // //   // update the index of the group cards
-                                        // for (int i = 0;
-                                        //     i < widget.groupCards.length;
-                                        //     i++) {
-                                        //   widget.groupCards[i].index = i;
-                                        // }
                                       });
                                     },
 

@@ -40,31 +40,6 @@ class _HomePageState extends State<HomePage> {
   // List of all the users friends
   List<UserData> friends = <UserData>[];
 
-  void handleStarToggle(int index, bool isStarredd) {
-    setState(() {
-      isStarred[index] = isStarredd;
-
-      if (isStarredd) {
-        var temp = groupCards.removeAt(index);
-
-        groupCards.insert(0, temp);
-      } else {
-        var temp = groupCards.removeAt(index);
-        // add the group card after being unstarred to the bottom of the last starred group card
-        for (int i = 0; i < groupCards.length; i++) {
-          if (groupCards[i].isStarred == false) {
-            groupCards.insert(i, temp);
-            break;
-          }
-        }
-      }
-
-      for (int i = 0; i < groupCards.length; i++) {
-        groupCards[i].index = i;
-      }
-    });
-  }
-
   @override
   void initState() {
     // add to groupCards
@@ -97,19 +72,6 @@ class _HomePageState extends State<HomePage> {
         .then((value) {
       currUser = UserData.fromMap(value.data()!);
 
-      // get the friends of the user
-      for (int i = 0; i < currUser.friends.length; i++) {
-        FirebaseFirestore.instance
-            .collection('users')
-            .doc(currUser.friends[i])
-            .get()
-            .then((value) {
-          UserData tempUser = UserData.fromMap(value.data()!);
-          friends.add(tempUser);
-          print(friends.length);
-        });
-      }
-
       setState(() {});
     });
 
@@ -124,6 +86,31 @@ class _HomePageState extends State<HomePage> {
     groupCardsSorted.addAll(groupCards);
   }
 
+  void handleStarToggle(int index, bool isStarredd) {
+    if (mounted) setState(() {});
+
+    isStarred[index] = isStarredd;
+
+    if (isStarredd) {
+      var temp = groupCards.removeAt(index);
+
+      groupCards.insert(0, temp);
+    } else {
+      var temp = groupCards.removeAt(index);
+      // add the group card after being unstarred to the bottom of the last starred group card
+      for (int i = 0; i < groupCards.length; i++) {
+        if (groupCards[i].isStarred == false) {
+          groupCards.insert(i, temp);
+          break;
+        }
+      }
+    }
+
+    for (int i = 0; i < groupCards.length; i++) {
+      groupCards[i].index = i;
+    }
+  }
+
   Future<List> getUsers() async {
     final snapshot = await FirebaseFirestore.instance.collection('users').get();
 
@@ -132,25 +119,19 @@ class _HomePageState extends State<HomePage> {
   }
 
   @override
-  void dispose() {
-    controller.dispose();
-    super.dispose();
-  }
-
-  @override
   Widget build(BuildContext context) {
     String? username = currUser.username;
     String? profilePic = currUser.profilePicture;
 
-    setState(() {
-      FirebaseFirestore.instance
-          .collection('users')
-          .doc(user!.uid)
-          .get()
-          .then((value) {
-        currUser = UserData.fromMap(value.data()!);
-      });
-    });
+    // setState(() {
+    //   FirebaseFirestore.instance
+    //       .collection('users')
+    //       .doc(user!.uid)
+    //       .get()
+    //       .then((value) {
+    //     currUser = UserData.fromMap(value.data()!);
+    //   });
+    // });
 
     return GestureDetector(
       onTap: () {
@@ -212,11 +193,6 @@ class _HomePageState extends State<HomePage> {
               ),
 
               // Lower sliver that is responsible for the search bar and the logic behind it.
-              // Also, it is responsible for the sorting of the group cards
-              // LowerSliver(
-              //     focusNode: focusNode,
-              //     controller: controller,
-              //     groupCardsSorted: groupCardsSorted),
               SliverAppBar(
                 leading: Container(),
                 flexibleSpace: Column(
@@ -291,12 +267,6 @@ class _HomePageState extends State<HomePage> {
                         CustomTextButton(
                           stringText: "Archived Groups",
                           onPressed: (() {
-                            // Navigator.pushReplacement(
-                            //   context,
-                            //   MaterialPageRoute(
-                            //     builder: (context) => const ArchivePage(),
-                            //   ),
-                            // );
                             Navigator.push(
                               context,
                               MaterialPageRoute(
@@ -334,34 +304,6 @@ class _HomePageState extends State<HomePage> {
                 elevation: 0,
                 pinned: true,
               ),
-
-              // SliverToBoxAdapter(
-              //   // button to log out
-              //   child: Container(
-              //     margin: const EdgeInsets.only(top: 20),
-              //     child: ElevatedButton(
-              //       onPressed: () {
-              //         // log out
-              //         // auth.signOut();
-              //         // Navigator.pushAndRemoveUntil(context, MaterialPageRoute(
-              //         //   builder: (context) {
-              //         //     return const LoginScreen();
-              //         //   },
-              //         // ), (route) => false);
-
-              //         // add a friend to the database and the current user's friend list
-              //         FirebaseFirestore.instance
-              //             .collection('users')
-              //             .doc(authUser.currentUser!.uid)
-              //             .update({
-              //           'friends': FieldValue.arrayUnion(
-              //               ['RapMr9QcHiUUyqV2GIzsmp2eOeu2'])
-              //         });
-              //       },
-              //       child: const Text('Log Out'),
-              //     ),
-              //   ),
-              // ),
 
               // A sliver list layout of cards that changes based on the search, archiving, filtering, and sorting.
 

@@ -105,7 +105,10 @@ class MyApp extends StatelessWidget {
         '/activity': (context) => const ActivityPage(),
         '/login': (context) => const LoginScreen(),
         '/register': (context) => const SignUpScreen(),
-        // '/secondsignup': (context) => const AdditionalSignUpScreen(),
+        '/secondsignup': (context) {
+          final String? uid = FirebaseAuth.instance.currentUser?.uid;
+          return AdditionalSignUpScreen(uid: uid ?? '');
+        }
       },
       initialRoute: route,
     );

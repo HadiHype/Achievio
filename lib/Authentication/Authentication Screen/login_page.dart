@@ -143,7 +143,7 @@ class _LoginScreenState extends State<LoginScreen> {
                     TextField(
                       focusNode: focusNodePassword,
                       controller: _passwordController,
-                      obscureText: true,
+                      obscureText: !showPassword,
                       onTapOutside: ((event) => focusNodePassword.unfocus()),
                       onChanged: (value) {
                         setState(() {
@@ -162,9 +162,11 @@ class _LoginScreenState extends State<LoginScreen> {
                         ),
                         suffixIcon: IconButton(
                           onPressed: () {
-                            setState(() {
-                              showPassword = !showPassword;
-                            });
+                            setState(
+                              () {
+                                showPassword = !showPassword;
+                              },
+                            );
                           },
                           icon: Icon(
                             showPassword

@@ -18,14 +18,8 @@ import '../../User Interface/app_colors.dart';
 import '../Authentication Logic/auth_logic.dart';
 
 class AdditionalSignUpScreen extends StatefulWidget {
-  const AdditionalSignUpScreen(
-      {required this.email,
-      required this.password,
-      required this.uid,
-      super.key});
+  const AdditionalSignUpScreen({required this.uid, super.key});
 
-  final String email;
-  final String password;
   final String uid;
 
   @override
@@ -61,7 +55,7 @@ class _AdditionalSignUpScreenState extends State<AdditionalSignUpScreen> {
     // pick image from camera and save it to the file system cache and then to the gallery of the phone
     final picker = ImagePicker();
     final pickedImage =
-        await picker.pickImage(source: ImageSource.camera, imageQuality: 10);
+        await picker.pickImage(source: ImageSource.camera, imageQuality: 50);
     final pickedImageFile = File(pickedImage!.path);
 
     setState(() {
@@ -145,7 +139,7 @@ class _AdditionalSignUpScreenState extends State<AdditionalSignUpScreen> {
             height: screenHeight - keyboardHeight,
             child: Center(
               child: SingleChildScrollView(
-                physics: const AlwaysScrollableScrollPhysics(),
+                physics: const BouncingScrollPhysics(),
                 child: Column(
                   mainAxisAlignment: MainAxisAlignment.center,
                   crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -298,7 +292,7 @@ class _AdditionalSignUpScreenState extends State<AdditionalSignUpScreen> {
                               // isDense: true,
                               contentPadding: EdgeInsets.symmetric(
                                   horizontal: 10, vertical: 0),
-                              hintText: '01/01/2002',
+                              hintText: 'Date of Birth',
                               hintStyle: TextStyle(
                                 color: Colors.black45,
                                 fontSize: 16,
@@ -599,13 +593,13 @@ class _AdditionalSignUpScreenState extends State<AdditionalSignUpScreen> {
                                             .child(
                                                 '${FirebaseAuth.instance.currentUser?.uid}');
 
-                                        // UploadTask uploadTask =
-                                        //     ref.putFile(_pickedImage!);
-                                        // final snapshot = await uploadTask
-                                        //     .whenComplete(() => null);
+                                        UploadTask uploadTask =
+                                            ref.putFile(_pickedImage!);
+                                        final snapshot = await uploadTask
+                                            .whenComplete(() => null);
 
-                                        // final downloadUrl =
-                                        //     await snapshot.ref.getDownloadURL();
+                                        final downloadUrl =
+                                            await snapshot.ref.getDownloadURL();
 
                                         var db = FirebaseFirestore.instance;
 
@@ -613,33 +607,24 @@ class _AdditionalSignUpScreenState extends State<AdditionalSignUpScreen> {
                                             .collection('users')
                                             .doc(widget.uid)
                                             .set({
-                                          'email': widget.email,
-                                          'password': widget.password,
-                                          'uid': widget.uid,
+                                          // 'email': widget.email,
+                                          // 'password': widget.password,
+                                          // 'uid': widget.uid,
                                           'gender': _genderController.text,
                                           'dateofbirth':
                                               _dateOfBirthController.text,
                                           'username': username,
-                                          // 'profilePicture': downloadUrl,
+                                          'profilePicture': downloadUrl,
                                           'friends': [],
+                                          'friendRequestReceived': [],
+                                          'friendRequestSent': [],
                                           'dateCreated':
                                               DateTime.now().toString(),
                                           'dateUpdated':
                                               DateTime.now().toString(),
                                           'dateLastLogin':
                                               DateTime.now().toString(),
-                                        });
-
-                                        // await db
-                                        //     .collection('users')
-                                        //     .doc(_auth.currentUser!.uid)
-                                        //     .update({
-                                        //   'gender': _genderController.text,
-                                        //   'dateofbirth':
-                                        //       _dateOfBirthController.text,
-                                        //   'username': username,
-                                        //   'profilePicture': downloadUrl,
-                                        // });
+                                        }, SetOptions(merge: true));
                                       } on FirebaseAuthException catch (e) {
                                         if (e.code == 'user-not-found') {
                                           // return popup message
@@ -658,7 +643,6 @@ class _AdditionalSignUpScreenState extends State<AdditionalSignUpScreen> {
                                                   DismissDirection.none,
                                             ),
                                           );
-                                          // print('No user found for that email.');
                                         } else if (e.code == 'wrong-password') {
                                           // return toast message
                                           ScaffoldMessenger.of(context)
