@@ -1,4 +1,6 @@
 import 'package:achievio/User%20Interface/app_colors.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 
 import '../../../Models/userinfo.dart';
@@ -18,6 +20,17 @@ class _CreateGroupState extends State<CreateGroup> {
   List<UserData> usersOfGroup = <UserData>[];
   List<bool> isCheckedList = List<bool>.filled(10, false);
   bool isSelected = false;
+
+  final authUser = FirebaseAuth.instance;
+
+  // Logged in user
+  User? user = FirebaseAuth.instance.currentUser;
+
+  // Logged in user data
+  UserData currUser = UserData();
+
+  // List of all the users friends
+  List<UserData> friends = <UserData>[];
 
   Widget _buildSearchField() {
     return TextField(
@@ -93,6 +106,46 @@ class _CreateGroupState extends State<CreateGroup> {
   }
 
   @override
+  void initState() {
+    // TODO: implement initState
+    super.initState();
+    // get friends list from database
+    FirebaseFirestore.instance
+        .collection('users')
+        .doc(user!.uid)
+        .get()
+        .then((value) {
+      currUser = UserData.fromMap(value.data()!);
+
+      for (int i = 0; i < currUser.friends.length; i++) {
+        FirebaseFirestore.instance
+            .collection('users')
+            .doc(currUser.friends[i])
+            .get()
+            .then((value) {
+          UserData tempUser = UserData.fromMap(value.data()!);
+          setState(() {
+            friends.add(tempUser);
+          });
+        });
+      }
+
+      for (int i = 0; i < currUser.friendRequestSent.length; i++) {
+        FirebaseFirestore.instance
+            .collection('users')
+            .doc(currUser.friendRequestSent[i])
+            .get()
+            .then((value) {
+          UserData tempUser = UserData.fromMap(value.data()!);
+          setState(() {
+            friends.add(tempUser);
+          });
+        });
+      }
+    });
+  }
+
+  @override
   Widget build(BuildContext context) {
     return Scaffold(
       floatingActionButtonAnimator: FloatingActionButtonAnimator.scaling,
@@ -134,79 +187,77 @@ class _CreateGroupState extends State<CreateGroup> {
         elevation: 1,
         backgroundColor: kTertiaryColor,
       ),
-      // body: ListView.builder(
-      //   itemBuilder: (BuildContext context, int index) {
-      //     // return list tile for each user according to search query
-      //     if (searchQuery.isEmpty) {
-      //       // if search query is empty, return list tile for all users
-      //       return ListTile(
-      //         title: Text(
-      //           "name",
-      //           style: const TextStyle(fontSize: 16),
-      //         ),
-      //         leading: const CircleAvatar(
-      //           backgroundImage: AssetImage("assets/images/Profile_Image.jpg"),
-      //         ),
-      //         trailing: Checkbox(
-      //           value: isCheckedList[index],
-      //           fillColor: MaterialStateProperty.all(kTertiaryColor),
-      //           onChanged: (value) {
-      //             setState(
-      //               () {
-      //                 addUserToGroup(index);
-      //               },
-      //             );
-      //           },
-      //         ),
-      //       );
-      //     } else {
-      //       // if search query is not empty, return list tile only if user name contains search query
-      //       if (users[index].name.toLowerCase().contains(searchQuery)) {
-      //         return ListTile(
-      //           title: Text(users[index].name),
-      //           leading: const CircleAvatar(
-      //             backgroundImage:
-      //                 AssetImage("assets/images/Profile_Image.jpg"),
-      //           ),
-      //           trailing: Checkbox(
-      //             value: isCheckedList[index],
-      //             fillColor: MaterialStateProperty.all(kTertiaryColor),
-      //             onChanged: (value) {
-      //               setState(
-      //                 () {
-      //                   addUserToGroup(index);
-      //                 },
-      //               );
-      //             },
-      //           ),
-      //         );
-      //       } else {
-      //         return const SizedBox();
-      //       }
-      //     }
-      //   },
-      //   itemCount: users.length,
-      // ),
+      body: ListView.builder(
+        itemBuilder: (BuildContext context, int index) {
+          // return list tile for each user according to search query
+          if (searchQuery.isEmpty) {
+            // if search query is empty, return list tile for all users
+            return ListTile(
+              title: Text(friends[index].username ?? ""),
+              leading: CircleAvatar(
+                backgroundImage:
+                    NetworkImage(friends[index].profilePicture ?? ""),
+              ),
+              trailing: Checkbox(
+                value: isCheckedList[index],
+                fillColor: MaterialStateProperty.all(kTertiaryColor),
+                onChanged: (value) {
+                  setState(
+                    () {
+                      addUserToGroup(index);
+                    },
+                  );
+                },
+              ),
+            );
+          } else {
+            // if search query is not empty, return list tile only if user name contains search query
+            if (friends[index].username!.toLowerCase().contains(searchQuery)) {
+              return ListTile(
+                title: Text(friends[index].username ?? ""),
+                leading: CircleAvatar(
+                  backgroundImage:
+                      NetworkImage(friends[index].profilePicture ?? ""),
+                ),
+                trailing: Checkbox(
+                  value: isCheckedList[index],
+                  fillColor: MaterialStateProperty.all(kTertiaryColor),
+                  onChanged: (value) {
+                    setState(
+                      () {
+                        addUserToGroup(index);
+                      },
+                    );
+                  },
+                ),
+              );
+            } else {
+              return const SizedBox();
+            }
+          }
+        },
+        itemCount: friends.length,
+      ),
     );
   }
 
-  // void addUserToGroup(int index) {
-  //   if (isCheckedList[index] == false) {
-  //     // add user to group
-  //     usersOfGroup.add(users[index]);
-  //     isCheckedList[index] = true;
-  //   } else {
-  //     // remove user from group
-  //     usersOfGroup.remove(users[index]);
-  //     isCheckedList[index] = false;
-  //   }
+  void addUserToGroup(int index) {
+    if (isCheckedList[index] == false) {
+      // add user to group
+      usersOfGroup.add(friends[index]);
+      isCheckedList[index] = true;
+    } else {
+      // remove user from group
+      usersOfGroup.remove(friends[index]);
+      isCheckedList[index] = false;
+    }
 
-  //   if (isCheckedList.contains(true)) {
-  //     // if at least one user is selected, show floating action button
-  //     _isSelected = true;
-  //   } else {
-  //     // if no user is selected, hide floating action button
-  //     _isSelected = false;
-  //   }
-  // }
+    if (isCheckedList.contains(true)) {
+      // if at least one user is selected, show floating action button
+      isSelected = true;
+    } else {
+      // if no user is selected, hide floating action button
+      isSelected = false;
+    }
+  }
 }

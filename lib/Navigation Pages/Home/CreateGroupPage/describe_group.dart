@@ -317,7 +317,6 @@ class _DescribeGroupState extends State<DescribeGroup> {
                         index: groupCards.length,
                         profilePic: 'assets/images/Profile_Pic.jpg',
                         isArchived: false,
-                        groupCardsStarred: [],
                         handleStarToggle: (int index, bool isStarred) {},
                       ),
                     );

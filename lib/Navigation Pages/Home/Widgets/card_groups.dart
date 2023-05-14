@@ -17,7 +17,6 @@ class GroupCard extends StatefulWidget {
     required this.profilePic,
     required this.isArchived,
     required this.groupCards,
-    required this.groupCardsStarred,
     required this.handleStarToggle,
   });
 
@@ -27,7 +26,6 @@ class GroupCard extends StatefulWidget {
   int numbOfTasksAssigned;
   bool visible;
   final List<GroupCard> groupCards;
-  final List<GroupCard> groupCardsStarred;
   int index;
   String profilePic;
   bool isArchived;

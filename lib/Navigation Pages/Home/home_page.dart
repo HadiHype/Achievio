@@ -26,7 +26,6 @@ class _HomePageState extends State<HomePage> {
   FocusNode focusNode = FocusNode();
   TextEditingController controller = TextEditingController();
   final GlobalKey<ScaffoldState> _key = GlobalKey();
-  List<GroupCard> groupCardsStarred = <GroupCard>[];
   List<GroupCard> groupCardsSorted = <GroupCard>[];
   Auth auth = Auth();
   final authUser = FirebaseAuth.instance;
@@ -57,7 +56,6 @@ class _HomePageState extends State<HomePage> {
             index: i,
             profilePic: 'assets/images/Profile_Pic.jpg',
             isArchived: isArchived[i],
-            groupCardsStarred: groupCardsStarred,
             handleStarToggle: handleStarToggle,
           ),
         );
