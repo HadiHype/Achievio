@@ -1,5 +1,8 @@
+import 'package:achievio/Navigation%20Pages/Group/group_page.dart';
 import 'package:achievio/User%20Interface/app_colors.dart';
 import 'package:achievio/User%20Interface/variables.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 
 import 'stacked_avatars.dart';
@@ -16,8 +19,8 @@ class GroupCard extends StatefulWidget {
     required this.index,
     required this.profilePic,
     required this.isArchived,
-    required this.groupCards,
     required this.handleStarToggle,
+    required this.uid,
   });
 
   String title;
@@ -25,17 +28,20 @@ class GroupCard extends StatefulWidget {
   String subTitle;
   int numbOfTasksAssigned;
   bool visible;
-  final List<GroupCard> groupCards;
   int index;
   String profilePic;
   bool isArchived;
-  final void Function(int index, bool isStarred) handleStarToggle;
+  final Future<void> Function(int index, bool isStarred, String uid)
+      handleStarToggle;
+  String uid;
 
   @override
   State<GroupCard> createState() => _GroupCardState();
 }
 
 class _GroupCardState extends State<GroupCard> {
+  bool _isOperationOngoing = false;
+
   @override
   Widget build(BuildContext context) {
     // TODO: Let the card be clickable and navigate to the group page
@@ -43,6 +49,15 @@ class _GroupCardState extends State<GroupCard> {
 
     return widget.visible == true
         ? GestureDetector(
+            onTap: () {
+              // navigate to group page
+              print(widget.uid);
+              Navigator.push(context, MaterialPageRoute(builder: (context) {
+                print(widget.uid);
+                return UserTaskPage(
+                    uid: widget.uid, groupPicture: widget.profilePic);
+              }));
+            },
             child: Padding(
               padding: const EdgeInsets.only(top: 8, left: 8, right: 8),
               child: ClipRRect(
@@ -66,9 +81,7 @@ class _GroupCardState extends State<GroupCard> {
                                     borderRadius: const BorderRadius.all(
                                         Radius.circular(10)),
                                     child: Image(
-                                      image: AssetImage(
-                                        widget.profilePic,
-                                      ),
+                                      image: NetworkImage(widget.profilePic),
                                       width: 36,
                                       height: 36,
                                       fit: BoxFit.cover,
@@ -90,15 +103,22 @@ class _GroupCardState extends State<GroupCard> {
                                 mainAxisAlignment: MainAxisAlignment.start,
                                 children: [
                                   GestureDetector(
-                                    // on tap change icon to filled star for specific index
-                                    onTap: () {
-                                      widget.handleStarToggle(
-                                          widget.index, !widget.isStarred);
-                                      setState(() {
-                                        widget.isStarred = !widget.isStarred;
-                                      });
-                                    },
-
+                                    onTap: _isOperationOngoing
+                                        ? null
+                                        : () async {
+                                            setState(() {
+                                              _isOperationOngoing = true;
+                                            });
+                                            await widget.handleStarToggle(
+                                                widget.index,
+                                                !widget.isStarred,
+                                                widget.uid);
+                                            setState(() {
+                                              widget.isStarred =
+                                                  !widget.isStarred;
+                                              _isOperationOngoing = false;
+                                            });
+                                          },
                                     child: Icon(
                                       widget.isStarred
                                           ? Icons.star
@@ -134,7 +154,7 @@ class _GroupCardState extends State<GroupCard> {
                                           PopupMenuItem(
                                             onTap: () {
                                               _archiveGroup(
-                                                  widget.groupCards,
+                                                  // widget.groupCards,
                                                   widget.index,
                                                   isPressed,
                                                   context);
@@ -204,80 +224,165 @@ class _GroupCardState extends State<GroupCard> {
   }
 
   _archiveGroup(
-    groupCards,
     int index,
     int isPressed,
     context,
-  ) {
+  ) async {
+    // Mark this function as async
+    GroupCard groupCardstemp;
+
+    var db = FirebaseFirestore.instance;
+    var user = FirebaseAuth.instance.currentUser;
+
+    if (!widget.isArchived) {
+      print("Archive");
+      widget.visible = false;
+      groupCardstemp = groupCards.removeAt(widget.index);
+      groupCardsArchived.add(groupCardstemp);
+      groupCardstemp.isArchived = true;
+
+      // Update the Firestore document
+      var groupRef = db
+          .collection('users')
+          .doc(user?.uid)
+          .collection('groups')
+          .doc(widget.uid);
+      await groupRef.update({
+        'isArchived': true,
+      });
+    } else {
+      widget.visible = false;
+      groupCardstemp = groupCardsArchived[groupCardsArchived.indexOf(widget)];
+      groupCardsArchived.removeWhere((element) => element == widget);
+      groupCardstemp.isArchived = false;
+      groupCards.insert(groupCards.length, groupCardstemp);
+
+      // Update the Firestore document
+      var groupRef = db
+          .collection('users')
+          .doc(user?.uid)
+          .collection('groups')
+          .doc(widget.uid);
+      await groupRef.update({
+        'isArchived': false,
+      });
+    }
+
+    // After completing the async task, call setState
     setState(() {
-      // groupCardsArchived.add(widget.groupCards[widget.index]);
-      GroupCard groupCardstemp;
-
-      if (!widget.isArchived) {
-        widget.visible = false;
-        groupCardstemp = groupCards.removeAt(widget.index);
-        groupCardsArchived.add(groupCardstemp);
-        groupCardstemp.isArchived = true;
-      } else {
-        widget.visible = false;
-        groupCardstemp = groupCardsArchived[groupCardsArchived.indexOf(widget)];
-        groupCardsArchived.removeWhere((element) => element == widget);
-        groupCardstemp.isArchived = false;
-        groupCards.insert(widget.index, groupCardstemp);
-      }
-
       for (int i = 0; i < groupCards.length; i++) {
         groupCards[i].index = i;
+        // Update the Firestore document for each group
+        db
+            .collection('users')
+            .doc(user?.uid)
+            .collection('groups')
+            .doc(groupCards[i].uid)
+            .update({
+          'index': i,
+        });
       }
 
-      // create a toast message
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          duration: const Duration(seconds: 1),
-          content:
-              // text widget and textbutton to undo
-              Row(
-            children: [
-              const Text("Group archived"),
-              const SizedBox(
-                width: 10,
-              ),
-              TextButton(
-                onPressed: () {
-                  setState(
-                    () {
-                      isPressed++;
-
-                      if (isPressed > 1) {
-                        return;
-                      } else {
-                        if (!widget.visible && widget.isArchived) {
-                          widget.visible = true;
-                          groupCardstemp = groupCardsArchived[
-                              groupCardsArchived.indexOf(widget)];
-                          groupCardsArchived
-                              .removeWhere((element) => element == widget);
-                          groupCardstemp.isArchived = false;
-                          groupCards.insert(widget.index, groupCardstemp);
-                        } else if (!widget.visible && !widget.isArchived) {
-                          widget.visible = true;
-                          groupCards.removeAt(widget.index);
-                          groupCardsArchived.add(groupCardstemp);
-                        }
-                        ScaffoldMessenger.of(context).removeCurrentSnackBar();
-                      }
-                    },
-                  );
-                },
-                child: const Text(
-                  "Undo",
-                  style: TextStyle(color: Colors.white),
-                ),
-              ),
-            ],
-          ),
-        ),
-      );
+      for (int i = 0; i < groupCardsArchived.length; i++) {
+        groupCardsArchived[i].index = i;
+        // Update the Firestore document for each archived group
+        db
+            .collection('users')
+            .doc(user?.uid)
+            .collection('groups')
+            .doc(groupCardsArchived[i].uid)
+            .update({
+          'index': i,
+        });
+      }
     });
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        duration: const Duration(seconds: 1),
+        content: Row(
+          children: [
+            const Text("Group archived"),
+            const SizedBox(
+              width: 10,
+            ),
+            TextButton(
+              onPressed: () async {
+                isPressed++;
+
+                if (isPressed > 1) {
+                  return;
+                } else {
+                  if (!widget.visible && widget.isArchived) {
+                    widget.visible = true;
+                    groupCardstemp =
+                        groupCardsArchived[groupCardsArchived.indexOf(widget)];
+                    groupCardsArchived
+                        .removeWhere((element) => element == widget);
+                    groupCardstemp.isArchived = false;
+                    groupCards.insert(groupCards.length, groupCardstemp);
+
+                    // Update the Firestore document
+                    var groupRef = db
+                        .collection('users')
+                        .doc(user?.uid)
+                        .collection('groups')
+                        .doc(widget.uid);
+                    await groupRef.update({
+                      'isArchived': false,
+                    });
+                  } else if (!widget.visible && !widget.isArchived) {
+                    widget.visible = true;
+                    groupCards.removeAt(widget.index);
+                    groupCardsArchived.add(groupCardstemp);
+                    var groupRef = db
+                        .collection('users')
+                        .doc(user?.uid)
+                        .collection('groups')
+                        .doc(widget.uid);
+                    await groupRef.update({
+                      'isArchived': true,
+                    });
+                  }
+                  ScaffoldMessenger.of(context).removeCurrentSnackBar();
+
+                  // After completing the async task, call setState to update UI
+                  setState(() {
+                    for (int i = 0; i < groupCards.length; i++) {
+                      groupCards[i].index = i;
+                      // Update the Firestore document for each group
+                      db
+                          .collection('users')
+                          .doc(user?.uid)
+                          .collection('groups')
+                          .doc(groupCards[i].uid)
+                          .update({
+                        'index': i,
+                      });
+                    }
+
+                    for (int i = 0; i < groupCardsArchived.length; i++) {
+                      groupCardsArchived[i].index = i;
+                      // Update the Firestore document for each archived group
+                      db
+                          .collection('users')
+                          .doc(user?.uid)
+                          .collection('groups')
+                          .doc(groupCardsArchived[i].uid)
+                          .update({
+                        'index': i,
+                      });
+                    }
+                  });
+                }
+              },
+              child: const Text(
+                "Undo",
+                style: TextStyle(color: Colors.white),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
   }
 }

@@ -1,3 +1,4 @@
+import 'package:achievio/Models/groupinfo.dart';
 import 'package:achievio/User%20Interface/app_colors.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
@@ -44,22 +45,61 @@ class _HomePageState extends State<HomePage> {
     // add to groupCards
     super.initState();
     if (defined == false) {
-      for (int i = 0; i < titles.length; i++) {
-        groupCards.add(
-          GroupCard(
-            title: titles[i],
-            isStarred: isStarred[i],
-            subTitle: subTitles[i],
-            numbOfTasksAssigned: tasksAssigned[i],
-            visible: true,
-            groupCards: groupCards,
-            index: i,
-            profilePic: 'assets/images/Profile_Pic.jpg',
-            isArchived: isArchived[i],
-            handleStarToggle: handleStarToggle,
-          ),
-        );
-      }
+      FirebaseFirestore.instance
+          .collection('users')
+          .doc(user!.uid)
+          .collection('groups')
+          .get()
+          .then((value) {
+        for (var element in value.docs) {
+          String groupId = element.id;
+
+          FirebaseFirestore.instance
+              .collection('users')
+              .doc(user!.uid)
+              .collection('groups')
+              .doc(groupId)
+              .get()
+              .then((value) {
+            GroupInfo groupInfo = GroupInfo.fromMap(value.data()!);
+
+            groupCards.add(GroupCard(
+              title: groupInfo.title!,
+              isStarred: groupInfo.starred!,
+              subTitle: groupInfo.description!,
+              numbOfTasksAssigned: 0,
+              visible: groupInfo.visible!,
+              index: groupInfo.index!,
+              profilePic: groupInfo.profilePic!,
+              isArchived: groupInfo.isArchived!,
+              handleStarToggle: handleStarToggle,
+              uid: groupInfo.groupID!,
+            ));
+
+            // sort according to index
+            groupCards.sort((a, b) => a.index.compareTo(b.index));
+
+            // check those that are archived and add them to the archived list
+            if (groupInfo.isArchived == true) {
+              groupCardsArchived.add(GroupCard(
+                title: groupInfo.title!,
+                isStarred: groupInfo.starred!,
+                subTitle: groupInfo.description!,
+                numbOfTasksAssigned: 0,
+                visible: groupInfo.visible!,
+                index: groupInfo.index!,
+                profilePic: groupInfo.profilePic!,
+                isArchived: groupInfo.isArchived!,
+                handleStarToggle: handleStarToggle,
+                uid: groupId,
+              ));
+            }
+
+            setState(() {});
+          });
+        }
+        setState(() {});
+      });
     }
 
     // get the data from the database according to uid
@@ -84,28 +124,60 @@ class _HomePageState extends State<HomePage> {
     groupCardsSorted.addAll(groupCards);
   }
 
-  void handleStarToggle(int index, bool isStarredd) {
-    if (mounted) setState(() {});
+  Future<void> handleStarToggle(int index, bool isStarredd, String uid) async {
+    var db = FirebaseFirestore.instance;
+    var user = FirebaseAuth.instance.currentUser;
 
     isStarred[index] = isStarredd;
 
     if (isStarredd) {
       var temp = groupCards.removeAt(index);
-
       groupCards.insert(0, temp);
+
+      // Update the Firestore document
+      var groupRef =
+          db.collection('users').doc(user?.uid).collection('groups').doc(uid);
+      await groupRef.update({
+        'starred': true,
+      });
     } else {
       var temp = groupCards.removeAt(index);
       // add the group card after being unstarred to the bottom of the last starred group card
-      for (int i = 0; i < groupCards.length; i++) {
-        if (groupCards[i].isStarred == false) {
-          groupCards.insert(i, temp);
-          break;
-        }
+      int insertIndex =
+          groupCards.indexWhere((group) => group.isStarred == false);
+      if (insertIndex == -1) {
+        // All cards are starred, so add at the end
+        insertIndex = groupCards.length;
       }
+
+      groupCards.insert(insertIndex, temp);
+
+      // Update the Firestore document
+      var groupRef =
+          db.collection('users').doc(user?.uid).collection('groups').doc(uid);
+      await groupRef.update({
+        'starred': false,
+      });
     }
 
+    // After completing the async task, call setState
     for (int i = 0; i < groupCards.length; i++) {
       groupCards[i].index = i;
+    }
+
+    setState(() {}); // Trigger a UI update
+
+// Update the Firestore document for each group
+    for (int i = 0; i < groupCards.length; i++) {
+      db
+          .collection('users')
+          .doc(user?.uid)
+          .collection('groups')
+          .doc(groupCards[i]
+              .uid) // I assumed that uid is a property of GroupCard
+          .update({
+        'index': i,
+      });
     }
   }
 
@@ -120,16 +192,6 @@ class _HomePageState extends State<HomePage> {
   Widget build(BuildContext context) {
     String? username = currUser.username;
     String? profilePic = currUser.profilePicture;
-
-    // setState(() {
-    //   FirebaseFirestore.instance
-    //       .collection('users')
-    //       .doc(user!.uid)
-    //       .get()
-    //       .then((value) {
-    //     currUser = UserData.fromMap(value.data()!);
-    //   });
-    // });
 
     return GestureDetector(
       onTap: () {
