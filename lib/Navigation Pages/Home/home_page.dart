@@ -63,39 +63,89 @@ class _HomePageState extends State<HomePage> {
               .then((value) {
             GroupInfo groupInfo = GroupInfo.fromMap(value.data()!);
 
-            groupCards.add(GroupCard(
-              title: groupInfo.title!,
-              isStarred: groupInfo.starred!,
-              subTitle: groupInfo.description!,
-              numbOfTasksAssigned: 0,
-              visible: groupInfo.visible!,
-              index: groupInfo.index!,
-              profilePic: groupInfo.profilePic!,
-              isArchived: groupInfo.isArchived!,
-              handleStarToggle: handleStarToggle,
-              uid: groupInfo.groupID!,
-            ));
+            // Fetch the current user's UID
+            String currentUserUid = user!.uid;
 
-            // sort according to index
-            groupCards.sort((a, b) => a.index.compareTo(b.index));
+            // Check if the current user is an admin of the group
+            bool isAdmin = groupInfo.admins!.contains(currentUserUid);
 
-            // check those that are archived and add them to the archived list
-            if (groupInfo.isArchived == true) {
-              groupCardsArchived.add(GroupCard(
+            // Fetch tasks assigned to the user in the group
+            FirebaseFirestore.instance
+                .collection('groups')
+                .doc(groupInfo.groupID)
+                .collection('Tasks')
+                .get()
+                .then((taskSnapshot) async {
+              int numbOfTasksAssigned = taskSnapshot.docs.length;
+
+              await FirebaseFirestore.instance
+                  .collection('users')
+                  .doc(user!.uid)
+                  .collection('taskResponse')
+                  .get()
+                  .then((value) {
+                for (var element in value.docs) {
+                  if (element['decision'] == 'Accepted') {
+                    numbOfTasksAssigned--;
+                  }
+                }
+              });
+              var currentUserPoints = 0;
+
+              if (!isAdmin) {
+                await FirebaseFirestore.instance
+                    .collection('groups')
+                    .doc(groupInfo.groupID!)
+                    .collection('users')
+                    .doc(user!.uid)
+                    .get()
+                    .then((value) {
+                  if (value.exists && value.data()!.containsKey('points')) {
+                    currentUserPoints = value['points'];
+                  }
+                });
+              }
+
+              groupCards.add(GroupCard(
                 title: groupInfo.title!,
                 isStarred: groupInfo.starred!,
                 subTitle: groupInfo.description!,
-                numbOfTasksAssigned: 0,
+                numbOfTasksAssigned: numbOfTasksAssigned,
                 visible: groupInfo.visible!,
                 index: groupInfo.index!,
                 profilePic: groupInfo.profilePic!,
                 isArchived: groupInfo.isArchived!,
                 handleStarToggle: handleStarToggle,
-                uid: groupId,
+                uGroupID: groupId,
+                uid: groupInfo.groupID!,
+                isAdmin: isAdmin,
+                points: currentUserPoints,
               ));
-            }
 
-            setState(() {});
+              // sort according to index
+              groupCards.sort((a, b) => a.index.compareTo(b.index));
+
+              // check those that are archived and add them to the archived list
+              if (groupInfo.isArchived == true) {
+                groupCardsArchived.add(GroupCard(
+                  title: groupInfo.title!,
+                  isStarred: groupInfo.starred!,
+                  subTitle: groupInfo.description!,
+                  numbOfTasksAssigned: numbOfTasksAssigned,
+                  visible: groupInfo.visible!,
+                  index: groupInfo.index!,
+                  profilePic: groupInfo.profilePic!,
+                  isArchived: groupInfo.isArchived!,
+                  handleStarToggle: handleStarToggle,
+                  uGroupID: groupId,
+                  uid: groupId,
+                  isAdmin: isAdmin,
+                  points: currentUserPoints,
+                ));
+              }
+
+              setState(() {});
+            });
           });
         }
         setState(() {});
@@ -165,7 +215,9 @@ class _HomePageState extends State<HomePage> {
       groupCards[i].index = i;
     }
 
-    setState(() {}); // Trigger a UI update
+    if (mounted) {
+      setState(() {}); // Trigger a UI update
+    }
 
 // Update the Firestore document for each group
     for (int i = 0; i < groupCards.length; i++) {
@@ -174,7 +226,7 @@ class _HomePageState extends State<HomePage> {
           .doc(user?.uid)
           .collection('groups')
           .doc(groupCards[i]
-              .uid) // I assumed that uid is a property of GroupCard
+              .uGroupID) // I assumed that uid is a property of GroupCard
           .update({
         'index': i,
       });

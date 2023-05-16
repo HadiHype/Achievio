@@ -398,7 +398,10 @@ class _DescribeGroupState extends State<DescribeGroup> {
                             for (int i = 0;
                                 i < widget.usersOfGroup.length;
                                 i++) {
-                              await groupRef.collection('users').add({
+                              await groupRef
+                                  .collection('users')
+                                  .doc(widget.usersOfGroup[i].uid)
+                                  .set({
                                 'uid': widget.usersOfGroup[i].uid,
                                 'username': widget.usersOfGroup[i].username,
                                 'points': 0,
@@ -424,7 +427,28 @@ class _DescribeGroupState extends State<DescribeGroup> {
                               'index': groupCards.length,
                             });
 
-                            //
+                            // add the group to the friends' list of groups in the database
+                            for (int i = 0;
+                                i < widget.usersOfGroup.length;
+                                i++) {
+                              await db
+                                  .collection('users')
+                                  .doc(widget.usersOfGroup[i].uid)
+                                  .collection('groups')
+                                  .add({
+                                'groupID': groupRef.id,
+                                'title': groupNameController.text,
+                                'admins': [
+                                  FirebaseAuth.instance.currentUser?.uid
+                                ],
+                                'description': groupDescriptionController.text,
+                                'profilePic': downloadUrl,
+                                'starred': false,
+                                'visible': true,
+                                'isArchived': false,
+                                'index': groupCards.length,
+                              });
+                            }
                           } catch (e) {
                             print(e);
                           }

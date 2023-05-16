@@ -1,3 +1,4 @@
+import 'package:achievio/Navigation%20Pages/Group/admin_task_page.dart';
 import 'package:achievio/Navigation%20Pages/Group/group_page.dart';
 import 'package:achievio/User%20Interface/app_colors.dart';
 import 'package:achievio/User%20Interface/variables.dart';
@@ -20,7 +21,10 @@ class GroupCard extends StatefulWidget {
     required this.profilePic,
     required this.isArchived,
     required this.handleStarToggle,
+    required this.uGroupID,
     required this.uid,
+    required this.isAdmin,
+    required this.points,
   });
 
   String title;
@@ -34,6 +38,9 @@ class GroupCard extends StatefulWidget {
   final Future<void> Function(int index, bool isStarred, String uid)
       handleStarToggle;
   String uid;
+  String uGroupID;
+  bool isAdmin;
+  int points;
 
   @override
   State<GroupCard> createState() => _GroupCardState();
@@ -51,12 +58,24 @@ class _GroupCardState extends State<GroupCard> {
         ? GestureDetector(
             onTap: () {
               // navigate to group page
-              print(widget.uid);
-              Navigator.push(context, MaterialPageRoute(builder: (context) {
-                print(widget.uid);
-                return UserTaskPage(
-                    uid: widget.uid, groupPicture: widget.profilePic);
-              }));
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) {
+                    if (widget.isAdmin) {
+                      return AdminTasksPage(
+                          uid: widget.uid, groupPicture: widget.profilePic);
+                    } else {
+                      return UserTaskPage(
+                        uid: widget.uid,
+                        groupPicture: widget.profilePic,
+                        groupTitle: widget.title,
+                        groupDescription: widget.subTitle,
+                      );
+                    }
+                  },
+                ),
+              );
             },
             child: Padding(
               padding: const EdgeInsets.only(top: 8, left: 8, right: 8),
@@ -102,8 +121,9 @@ class _GroupCardState extends State<GroupCard> {
                               child: Row(
                                 mainAxisAlignment: MainAxisAlignment.start,
                                 children: [
-                                  GestureDetector(
-                                    onTap: _isOperationOngoing
+                                  IconButton(
+                                    splashRadius: 1,
+                                    onPressed: _isOperationOngoing
                                         ? null
                                         : () async {
                                             setState(() {
@@ -112,14 +132,14 @@ class _GroupCardState extends State<GroupCard> {
                                             await widget.handleStarToggle(
                                                 widget.index,
                                                 !widget.isStarred,
-                                                widget.uid);
+                                                widget.uGroupID);
                                             setState(() {
                                               widget.isStarred =
                                                   !widget.isStarred;
                                               _isOperationOngoing = false;
                                             });
                                           },
-                                    child: Icon(
+                                    icon: Icon(
                                       widget.isStarred
                                           ? Icons.star
                                           : Icons.star_border,
@@ -195,22 +215,38 @@ class _GroupCardState extends State<GroupCard> {
                         Row(
                           mainAxisAlignment: MainAxisAlignment.spaceBetween,
                           children: [
-                            Container(
-                              decoration: const BoxDecoration(
-                                borderRadius:
-                                    BorderRadius.all(Radius.circular(5)),
-                                color: Color(0xBD569DC1),
-                              ),
-                              padding: const EdgeInsets.only(
-                                  top: 3, bottom: 3, left: 4, right: 4),
-                              child: Text(
-                                "${widget.numbOfTasksAssigned} tasks assigned to you",
-                                style: const TextStyle(
-                                  fontSize: 10.5,
-                                  color: Colors.white,
-                                ),
-                              ),
-                            ),
+                            !widget.isAdmin
+                                ? Container(
+                                    decoration: const BoxDecoration(
+                                      borderRadius:
+                                          BorderRadius.all(Radius.circular(5)),
+                                      color: Color(0xBD569DC1),
+                                    ),
+                                    padding: const EdgeInsets.only(
+                                        top: 3, bottom: 3, left: 4, right: 4),
+                                    child: Text(
+                                      "${widget.numbOfTasksAssigned} tasks assigned to you",
+                                      style: const TextStyle(
+                                        fontSize: 10.5,
+                                        color: Colors.white,
+                                      ),
+                                    ),
+                                  )
+                                : Container(),
+                            !widget.isAdmin
+                                ? CircleAvatar(
+                                    backgroundColor: Color(0xBD569DC1),
+                                    child: Container(
+                                      child: Text(
+                                        widget.points.toString(),
+                                        style: const TextStyle(
+                                          fontSize: 10.5,
+                                          color: Colors.white,
+                                        ),
+                                      ),
+                                    ),
+                                  )
+                                : Container(),
                           ],
                         )
                       ],
@@ -246,7 +282,7 @@ class _GroupCardState extends State<GroupCard> {
           .collection('users')
           .doc(user?.uid)
           .collection('groups')
-          .doc(widget.uid);
+          .doc(widget.uGroupID);
       await groupRef.update({
         'isArchived': true,
       });
@@ -262,7 +298,7 @@ class _GroupCardState extends State<GroupCard> {
           .collection('users')
           .doc(user?.uid)
           .collection('groups')
-          .doc(widget.uid);
+          .doc(widget.uGroupID);
       await groupRef.update({
         'isArchived': false,
       });
@@ -277,7 +313,7 @@ class _GroupCardState extends State<GroupCard> {
             .collection('users')
             .doc(user?.uid)
             .collection('groups')
-            .doc(groupCards[i].uid)
+            .doc(groupCards[i].uGroupID)
             .update({
           'index': i,
         });
@@ -290,7 +326,7 @@ class _GroupCardState extends State<GroupCard> {
             .collection('users')
             .doc(user?.uid)
             .collection('groups')
-            .doc(groupCardsArchived[i].uid)
+            .doc(groupCardsArchived[i].uGroupID)
             .update({
           'index': i,
         });
@@ -326,7 +362,7 @@ class _GroupCardState extends State<GroupCard> {
                         .collection('users')
                         .doc(user?.uid)
                         .collection('groups')
-                        .doc(widget.uid);
+                        .doc(widget.uGroupID);
                     await groupRef.update({
                       'isArchived': false,
                     });
@@ -338,7 +374,7 @@ class _GroupCardState extends State<GroupCard> {
                         .collection('users')
                         .doc(user?.uid)
                         .collection('groups')
-                        .doc(widget.uid);
+                        .doc(widget.uGroupID);
                     await groupRef.update({
                       'isArchived': true,
                     });
@@ -354,7 +390,7 @@ class _GroupCardState extends State<GroupCard> {
                           .collection('users')
                           .doc(user?.uid)
                           .collection('groups')
-                          .doc(groupCards[i].uid)
+                          .doc(groupCards[i].uGroupID)
                           .update({
                         'index': i,
                       });
@@ -367,7 +403,7 @@ class _GroupCardState extends State<GroupCard> {
                           .collection('users')
                           .doc(user?.uid)
                           .collection('groups')
-                          .doc(groupCardsArchived[i].uid)
+                          .doc(groupCardsArchived[i].uGroupID)
                           .update({
                         'index': i,
                       });

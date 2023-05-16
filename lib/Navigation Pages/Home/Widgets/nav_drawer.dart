@@ -1,4 +1,5 @@
 import 'package:achievio/Models/userinfo.dart';
+import 'package:achievio/Navigation%20Pages/feedback.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 
@@ -130,7 +131,10 @@ class NavDrawer extends StatelessWidget {
                     kGreyColor.withOpacity(0.1),
                   ),
                 ),
-                onPressed: () {},
+                onPressed: () {
+                  Navigator.push(context,
+                      MaterialPageRoute(builder: (context) => FeedbackForm()));
+                },
                 child: Padding(
                   padding: const EdgeInsets.only(left: 3.5),
                   child: Row(

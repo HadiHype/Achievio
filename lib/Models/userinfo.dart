@@ -48,9 +48,4 @@ class UserData {
       "friendRequestSent": friendRequestSent,
     };
   }
-
-  // @override
-  // String toString() {
-  //   return 'User{uid: $uid, name: $name, email: $email, phone: $phone}';
-  // }
 }

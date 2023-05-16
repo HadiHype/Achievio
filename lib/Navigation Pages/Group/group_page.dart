@@ -1,13 +1,22 @@
+import 'package:achievio/Navigation%20Pages/Group/submission_task.dart';
+import 'package:achievio/Navigation%20Pages/Group/view_group.dart';
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 
 class UserTaskPage extends StatefulWidget {
-  const UserTaskPage({required this.uid, required this.groupPicture, Key? key})
+  const UserTaskPage(
+      {required this.uid,
+      required this.groupPicture,
+      required this.groupTitle,
+      required this.groupDescription,
+      Key? key})
       : super(key: key);
 
   final String uid;
   final String groupPicture;
+  final String groupTitle;
+  final String groupDescription;
 
   @override
   State<UserTaskPage> createState() => _UserTaskPageState();
@@ -26,11 +35,24 @@ class _UserTaskPageState extends State<UserTaskPage> {
             Navigator.pop(context);
           },
         ),
-        title: const Text('Group Title'), // replace with your group title
+        title: Text(widget.groupTitle), // replace with your group title
         actions: <Widget>[
-          CircleAvatar(
-            backgroundImage: NetworkImage(
-                widget.groupPicture), // replace with your group picture URL
+          GestureDetector(
+            onTap: () => Navigator.push(
+              context,
+              MaterialPageRoute(
+                builder: (context) => GroupDetailsPage(
+                  groupId: widget.uid,
+                  groupTitle: widget.groupTitle,
+                  groupPicture: widget.groupPicture,
+                  groupDescription: widget.groupDescription,
+                ),
+              ),
+            ),
+            child: CircleAvatar(
+              backgroundImage: NetworkImage(
+                  widget.groupPicture), // replace with your group picture URL
+            ),
           ),
         ],
       ),
@@ -63,7 +85,14 @@ class _UserTaskPageState extends State<UserTaskPage> {
                 trailing: IconButton(
                   icon: const Icon(Icons.file_upload),
                   onPressed: () {
-                    // put your file upload logic here
+                    Navigator.of(context).push(MaterialPageRoute(
+                      builder: (context) => SubmissionPage(
+                        taskId: document.id,
+                        ugroupid: widget.uid,
+                        taskTitle: data['title'],
+                        numberOfAttachments: data['attachments'].length,
+                      ),
+                    ));
                   },
                 ),
               );
