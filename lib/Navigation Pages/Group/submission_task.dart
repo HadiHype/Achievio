@@ -11,16 +11,21 @@ class SubmissionPage extends StatefulWidget {
   final String ugroupid;
   final String taskTitle;
   final int numberOfAttachments;
+  final List<dynamic> attachments;
+  final String taskAdmin;
 
-  const SubmissionPage(
-      {Key? key,
-      required this.taskId,
-      required this.ugroupid,
-      required this.taskTitle,
-      required this.numberOfAttachments})
-      : super(key: key);
+  const SubmissionPage({
+    Key? key,
+    required this.taskId,
+    required this.ugroupid,
+    required this.taskTitle,
+    required this.numberOfAttachments,
+    required this.attachments,
+    required this.taskAdmin,
+  }) : super(key: key);
 
   @override
+  // ignore: library_private_types_in_public_api
   _SubmissionPageState createState() => _SubmissionPageState();
 }
 
@@ -42,8 +47,10 @@ class _SubmissionPageState extends State<SubmissionPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      resizeToAvoidBottomInset: false,
       appBar: AppBar(
         title: Text(widget.taskTitle),
+        backgroundColor: Color(0xBD569DC1),
       ),
       body: FutureBuilder<DocumentSnapshot?>(
         future: getResponse(),
@@ -77,64 +84,151 @@ class _SubmissionPageState extends State<SubmissionPage> {
     return Column(
       children: <Widget>[
         // Your submission UI code here
+        const SizedBox(
+          height: 10,
+        ),
         Padding(
           padding: const EdgeInsets.all(8.0),
           child: TextField(
             controller: noteController,
-            decoration: const InputDecoration(labelText: 'Note'),
+            decoration: const InputDecoration(
+              // isDense: true,
+              contentPadding: EdgeInsets.symmetric(horizontal: 10, vertical: 0),
+              hintText: 'Note',
+              hintStyle: TextStyle(
+                color: Colors.black45,
+                fontSize: 16,
+                fontWeight: FontWeight.w400,
+              ),
+
+              fillColor: Color(0xFFF5F5F5),
+              focusedBorder: OutlineInputBorder(
+                borderRadius: BorderRadius.all(
+                  Radius.circular(6),
+                ),
+                borderSide: BorderSide(
+                  color: Colors.black,
+                  width: 2,
+                ),
+              ),
+              enabledBorder: OutlineInputBorder(
+                borderRadius: BorderRadius.all(
+                  Radius.circular(6),
+                ),
+                borderSide: BorderSide(
+                  color: Colors.black,
+                  width: 1,
+                ),
+              ),
+              filled: true,
+              border: OutlineInputBorder(
+                borderRadius: BorderRadius.all(
+                  Radius.circular(6),
+                ),
+              ),
+            ),
           ),
         ),
         for (var i = 0; i < widget.numberOfAttachments; i++)
-          Row(
+
+          // Display the attachment name and a button to pick an image
+          Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            crossAxisAlignment: CrossAxisAlignment.center,
             children: [
-              Text('Attachment ${i + 1}'), // Display the attachment name
+              Text(
+                widget.attachments[i].toString().toTitleCase(),
+                style: const TextStyle(
+                  decorationColor: Color(0xBD569DC1),
+                  fontSize: 16,
+                  fontWeight: FontWeight.w600,
+                ),
+              ), // Display the attachment name
               ElevatedButton(
-                child: Text('Add Image'),
+                style: ButtonStyle(
+                  backgroundColor:
+                      MaterialStateProperty.all<Color>(const Color(0xBD569DC1)),
+                ),
                 onPressed: () async {
                   final XFile? pickedImage = await ImagePicker()
                       .pickImage(source: ImageSource.gallery);
                   if (pickedImage != null) {
                     setState(() {
-                      attachments['Attachment ${i + 1}'] =
+                      attachments[widget.attachments[i]] =
                           pickedImage; // Store the image against the attachment name
                     });
                   }
                 },
+                child: const Text('Pick an image'),
               ),
-              if (attachments.containsKey(
-                  'Attachment ${i + 1}')) // If an image has been picked for this attachment, display a preview
+              if (attachments.containsKey(widget.attachments[
+                  i])) // If an image has been picked for this attachment, display a preview
                 Image.file(
-                  File(attachments['Attachment ${i + 1}']!.path),
+                  File(attachments[widget.attachments[i]]!.path),
                   width: 100,
                   height: 100,
                 ),
             ],
           ),
         ElevatedButton(
-          child: Text('Submit'),
           onPressed: isSubmitting ? null : () => submitTask(),
+          style: ButtonStyle(
+            backgroundColor:
+                MaterialStateProperty.all<Color>(const Color(0xBD569DC1)),
+          ),
+          child: const Text('Submit'),
         ),
       ],
     );
   }
 
   Widget responseUI(Map<String, dynamic> responseData) {
-    return Column(
-      children: <Widget>[
-        Text('Response: ${responseData['decision']}'),
-        Text('Note: ${responseData['note']}'),
-      ],
+    return Center(
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        crossAxisAlignment: CrossAxisAlignment.center,
+        children: <Widget>[
+          Text(
+            'Response: ${responseData['decision']}',
+            textAlign: TextAlign.center,
+            style: const TextStyle(
+              fontSize: 20,
+              fontWeight: FontWeight.bold,
+              color: Colors.green,
+            ),
+          ),
+          Text(
+            'Note: ${responseData['note']}',
+            textAlign: TextAlign.center,
+            style: const TextStyle(fontSize: 16),
+          ),
+        ],
+      ),
     );
   }
 
   Widget rejectUI(Map<String, dynamic> responseData) {
-    return Column(
-      children: <Widget>[
-        Text('Response: ${responseData['decision']}'),
-        Text('Note: ${responseData['note']}'),
-        // Add your re-upload UI here
-        submissionUI(),
-      ],
+    return Center(
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        crossAxisAlignment: CrossAxisAlignment.center,
+        children: <Widget>[
+          Text('Response: ${responseData['decision']}',
+              textAlign: TextAlign.center,
+              style: const TextStyle(
+                fontSize: 20,
+                fontWeight: FontWeight.bold,
+                color: Colors.red,
+              )),
+          Text(
+            'Note: ${responseData['note']}',
+            textAlign: TextAlign.center,
+            style: const TextStyle(fontSize: 16),
+          ),
+          // Add your re-upload UI here
+          submissionUI(),
+        ],
+      ),
     );
   }
 
@@ -160,7 +254,7 @@ class _SubmissionPageState extends State<SubmissionPage> {
                 'You have already submitted this task. Do you want to overwrite your previous submission?'),
             actions: <Widget>[
               ElevatedButton(
-                child: Text('Cancel'),
+                child: const Text('Cancel'),
                 onPressed: () {
                   Navigator.of(context).pop();
                   setState(() {
@@ -169,7 +263,7 @@ class _SubmissionPageState extends State<SubmissionPage> {
                 },
               ),
               ElevatedButton(
-                child: Text('Overwrite'),
+                child: const Text('Overwrite'),
                 onPressed: () {
                   Navigator.of(context).pop();
                   proceedWithSubmission();
@@ -207,7 +301,35 @@ class _SubmissionPageState extends State<SubmissionPage> {
       'attachments': imageURLs,
     }, SetOptions(merge: true));
 
+    //get the admin profile picture
+    DocumentSnapshot adminSnapshot = await FirebaseFirestore.instance
+        .collection('users')
+        .doc(widget.taskAdmin)
+        .get();
+
+    // get the current user profile picture
+    DocumentSnapshot userSnapshot = await FirebaseFirestore.instance
+        .collection('users')
+        .doc(FirebaseAuth.instance.currentUser?.uid)
+        .get();
+
+    // Add a notification for this task assignment
+    await FirebaseFirestore.instance
+        .collection('users')
+        .doc(widget.taskAdmin)
+        .collection('notifications')
+        .doc(groupRef.id)
+        .set({
+      'createdAt': FieldValue.serverTimestamp(),
+      'adminName': userSnapshot['username'],
+      'adminProfilePicture': adminSnapshot['profilePicture'],
+      'taskTitle':
+          'New submission for ${widget.taskTitle} by ${userSnapshot['username']}',
+      'taskId': widget.taskId,
+    });
+
     // Optionally, navigate back to the previous screen
+    // ignore: use_build_context_synchronously
     Navigator.of(context).pop();
 
     setState(() {
@@ -225,4 +347,13 @@ class _SubmissionPageState extends State<SubmissionPage> {
 
     return await ref.getDownloadURL();
   }
+}
+
+extension StringCasingExtension on String {
+  String toCapitalized() =>
+      length > 0 ? '${this[0].toUpperCase()}${substring(1).toLowerCase()}' : '';
+  String toTitleCase() => replaceAll(RegExp(' +'), ' ')
+      .split(' ')
+      .map((str) => str.toCapitalized())
+      .join(' ');
 }

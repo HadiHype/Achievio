@@ -107,7 +107,6 @@ class _CreateGroupState extends State<CreateGroup> {
 
   @override
   void initState() {
-    // TODO: implement initState
     super.initState();
     // get friends list from database
     FirebaseFirestore.instance

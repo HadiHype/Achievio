@@ -1,6 +1,7 @@
 import 'package:achievio/Models/userinfo.dart';
 import 'package:achievio/Navigation%20Pages/feedback.dart';
 import 'package:cached_network_image/cached_network_image.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 
 import '../../../User Interface/app_colors.dart';
@@ -132,8 +133,10 @@ class NavDrawer extends StatelessWidget {
                   ),
                 ),
                 onPressed: () {
-                  Navigator.push(context,
-                      MaterialPageRoute(builder: (context) => FeedbackForm()));
+                  Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                          builder: (context) => const FeedbackForm()));
                 },
                 child: Padding(
                   padding: const EdgeInsets.only(left: 3.5),
@@ -197,6 +200,61 @@ class NavDrawer extends StatelessWidget {
                       ),
                     ],
                   ),
+                ),
+              ),
+            ),
+            Divider(
+              height: 5,
+              endIndent: 30,
+            ),
+
+            // const SizedBox(
+            //   height: 30,
+            // ),
+
+            TextButton(
+              style: ButtonStyle(
+                padding: MaterialStateProperty.all(
+                  const EdgeInsets.only(left: 3.5),
+                ),
+                overlayColor: MaterialStateProperty.all(
+                  kGreyColor.withOpacity(0.1),
+                ),
+              ),
+              onPressed: () async {
+                try {
+                  await FirebaseAuth.instance.signOut();
+                  // ignore: use_build_context_synchronously
+                  Navigator.pushNamed(context, '/login');
+                } catch (e) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(
+                      content: Text('Error logging out. Try again.'),
+                    ),
+                  );
+                }
+              },
+              child: Padding(
+                padding: const EdgeInsets.only(left: 3.5),
+                child: Row(
+                  children: const [
+                    Icon(
+                      Icons.logout,
+                      size: 21,
+                      color: kBlueGreyColor,
+                    ),
+                    SizedBox(
+                      width: 8,
+                    ),
+                    Text(
+                      "Logout",
+                      style: TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.w500,
+                        color: kBlueGreyColor,
+                      ),
+                    ),
+                  ],
                 ),
               ),
             ),

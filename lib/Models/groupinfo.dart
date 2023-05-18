@@ -1,5 +1,3 @@
-import 'package:achievio/Models/userinfo.dart';
-
 class GroupInfo {
   List<dynamic>? admins;
   String? description;

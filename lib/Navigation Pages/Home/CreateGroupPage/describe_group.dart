@@ -1,6 +1,5 @@
 import 'dart:io';
 import 'package:achievio/Models/userinfo.dart';
-import 'package:achievio/Navigation%20Pages/Home/Widgets/card_groups.dart';
 import 'package:achievio/User%20Interface/variables.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
@@ -326,22 +325,8 @@ class _DescribeGroupState extends State<DescribeGroup> {
                     height: 50,
                     child: ElevatedButton(
                       onPressed: () async {
-                        // add the group card to the list of group cards
-                        // groupCards.add(
-                        //   GroupCard(
-                        //     title: groupNameController.text,
-                        //     isStarred: false,
-                        //     subTitle: groupDescriptionController.text,
-                        //     numbOfTasksAssigned: 0,
-                        //     visible: true,
-                        //     index: groupCards.length,
-                        //     profilePic: 'assets/images/Profile_Pic.jpg',
-                        //     isArchived: false,
-                        //     handleStarToggle: (int index, bool isStarred) {},
-                        //   ),
-                        // );
-
-                        if (_formKey.currentState!.validate()) {
+                        if (_formKey.currentState!.validate() &&
+                            _pickedImage != null) {
                           setState(() {
                             showSpinner = true;
                           });
@@ -405,6 +390,8 @@ class _DescribeGroupState extends State<DescribeGroup> {
                                 'uid': widget.usersOfGroup[i].uid,
                                 'username': widget.usersOfGroup[i].username,
                                 'points': 0,
+                                'profilePicture':
+                                    widget.usersOfGroup[i].profilePicture,
                               });
                             }
 
@@ -449,25 +436,35 @@ class _DescribeGroupState extends State<DescribeGroup> {
                                 'index': groupCards.length,
                               });
                             }
-                          } catch (e) {
-                            print(e);
-                          }
+                            if (mounted) {
+                              defined = false;
 
-                          if (mounted) {
-                            defined = false;
+                              groupCards.clear();
+                              groupCardsArchived.clear();
 
-                            groupCards.clear();
-                            groupCardsArchived.clear();
-
-                            Navigator.popAndPushNamed(
-                              context,
-                              '/nav',
-                            );
-                          }
+                              Navigator.popAndPushNamed(
+                                context,
+                                '/nav',
+                              );
+                            }
+                            // ignore: empty_catches
+                          } catch (e) {}
 
                           setState(() {
                             showSpinner = false;
                           });
+                        } else {
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            const SnackBar(
+                              content: Text(
+                                'Please fill all the fields and add a profile picture',
+                                style: TextStyle(
+                                  color: Colors.white,
+                                ),
+                              ),
+                              backgroundColor: kSecondaryColor,
+                            ),
+                          );
                         }
                       },
                       style: ElevatedButton.styleFrom(

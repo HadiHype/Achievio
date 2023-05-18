@@ -4,6 +4,7 @@ import 'package:achievio/Authentication/Authentication%20Screen/signup_page_addi
 import 'package:achievio/Navigation%20Pages/Home/home_page.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -14,9 +15,15 @@ import 'Authentication/Authentication Logic/auth_logic.dart';
 import 'Navigation Pages/Activity/activity_page.dart';
 import 'Navigation Pages/navigation.dart';
 
+Future<void> _backgroundHandler(RemoteMessage message) async {
+  print("Handling a background message: ${message.messageId}");
+  // Handle your message
+}
+
 Future main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await Firebase.initializeApp();
+  FirebaseMessaging.onBackgroundMessage(_backgroundHandler);
 
   final Auth auth = Auth();
   final bool isLogged = await auth.isLogged();

@@ -3,6 +3,7 @@ import 'package:achievio/User%20Interface/app_colors.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/material.dart';
 import '../../Authentication/Authentication Logic/auth_logic.dart';
 import '../../Models/userinfo.dart';
@@ -39,118 +40,123 @@ class _HomePageState extends State<HomePage> {
 
   // List of all the users friends
   List<UserData> friends = <UserData>[];
+  final FirebaseMessaging _firebaseMessaging = FirebaseMessaging.instance;
+
+  // create a map for storing fetched group data
+  final Map<String, GroupCard> groupCardCache = {};
+
+  void listenToGroups() {
+    FirebaseFirestore.instance
+        .collection('users')
+        .doc(user!.uid)
+        .collection('groups')
+        .snapshots()
+        .listen((snapshot) {
+      List<GroupCard> newGroupCards = [];
+      // here you'll have to fetch each group's details
+      // but remember this code will be triggered for every single change on the groups collection
+      for (var groupDoc in snapshot.docs) {
+        // if the group is in cache and starred, no need to fetch data again
+        if (groupCardCache.containsKey(groupDoc.id) &&
+            groupCardCache[groupDoc.id]!.isStarred) {
+          newGroupCards.add(groupCardCache[groupDoc.id]!);
+        } else {
+          // here you can use async code to fetch each group data and update the groupCards list
+          fetchGroupData(groupDoc).then((groupCard) {
+            groupCardCache[groupDoc.id] = groupCard; // save to cache
+            newGroupCards.add(groupCard);
+            // replace the old groupCards with the new one
+            setState(() {
+              groupCards = newGroupCards;
+              groupCards.sort((a, b) => a.index.compareTo(b.index));
+              // print(groupCards);
+            });
+          });
+        }
+      }
+    });
+  }
+
+  Future<GroupCard> fetchGroupData(QueryDocumentSnapshot groupDoc) async {
+    // Replace your old code with async/await style code
+    String groupId = groupDoc.id;
+    DocumentSnapshot<Map<String, dynamic>> groupSnapshot =
+        await FirebaseFirestore.instance
+            .collection('users')
+            .doc(user!.uid)
+            .collection('groups')
+            .doc(groupId)
+            .get();
+    GroupInfo groupInfo = GroupInfo.fromMap(groupSnapshot.data()!);
+
+    // Fetch the current user's UID
+    String currentUserUid = user!.uid;
+
+    // Check if the current user is an admin of the group
+    bool isAdmin = groupInfo.admins!.contains(currentUserUid);
+
+    // get the admin's name
+    DocumentSnapshot<Map<String, dynamic>> adminSnapshot =
+        await FirebaseFirestore.instance
+            .collection('users')
+            .doc(groupInfo.admins![0])
+            .get();
+    String adminName = adminSnapshot.data()!['username'];
+    String adminProfilePicture = adminSnapshot.data()!['profilePicture'];
+
+    // Fetch tasks assigned to the user in the group
+    QuerySnapshot taskSnapshot = await FirebaseFirestore.instance
+        .collection('groups')
+        .doc(groupInfo.groupID)
+        .collection('Tasks')
+        .get();
+    int numbOfTasksAssigned = taskSnapshot.docs.length;
+
+    var currentUserPoints = 0;
+
+    if (!isAdmin) {
+      DocumentSnapshot<Map<String, dynamic>> pointsSnapshot =
+          await FirebaseFirestore.instance
+              .collection('groups')
+              .doc(groupInfo.groupID!)
+              .collection('users')
+              .doc(user!.uid)
+              .get();
+      if (pointsSnapshot.exists &&
+          pointsSnapshot.data()!.containsKey('points')) {
+        currentUserPoints = pointsSnapshot.data()!['points'];
+      }
+    }
+
+    return GroupCard(
+      title: groupInfo.title!,
+      isStarred: groupInfo.starred!,
+      subTitle: groupInfo.description!,
+      numbOfTasksAssigned: numbOfTasksAssigned,
+      visible: groupInfo.visible!,
+      index: groupInfo.index!,
+      profilePic: groupInfo.profilePic!,
+      isArchived: groupInfo.isArchived!,
+      handleStarToggle:
+          handleStarToggle, // This would be a function in your code
+      uGroupID: groupId,
+      uid: groupInfo.groupID!,
+      isAdmin: isAdmin,
+      points: currentUserPoints,
+      adminName: adminName,
+      adminProfilePicture: adminProfilePicture,
+    );
+  }
 
   @override
   void initState() {
     // add to groupCards
     super.initState();
-    if (defined == false) {
-      FirebaseFirestore.instance
-          .collection('users')
-          .doc(user!.uid)
-          .collection('groups')
-          .get()
-          .then((value) {
-        for (var element in value.docs) {
-          String groupId = element.id;
+    requestPermission();
+    firebaseCloudMessagingListeners();
 
-          FirebaseFirestore.instance
-              .collection('users')
-              .doc(user!.uid)
-              .collection('groups')
-              .doc(groupId)
-              .get()
-              .then((value) {
-            GroupInfo groupInfo = GroupInfo.fromMap(value.data()!);
-
-            // Fetch the current user's UID
-            String currentUserUid = user!.uid;
-
-            // Check if the current user is an admin of the group
-            bool isAdmin = groupInfo.admins!.contains(currentUserUid);
-
-            // Fetch tasks assigned to the user in the group
-            FirebaseFirestore.instance
-                .collection('groups')
-                .doc(groupInfo.groupID)
-                .collection('Tasks')
-                .get()
-                .then((taskSnapshot) async {
-              int numbOfTasksAssigned = taskSnapshot.docs.length;
-
-              await FirebaseFirestore.instance
-                  .collection('users')
-                  .doc(user!.uid)
-                  .collection('taskResponse')
-                  .get()
-                  .then((value) {
-                for (var element in value.docs) {
-                  if (element['decision'] == 'Accepted') {
-                    numbOfTasksAssigned--;
-                  }
-                }
-              });
-              var currentUserPoints = 0;
-
-              if (!isAdmin) {
-                await FirebaseFirestore.instance
-                    .collection('groups')
-                    .doc(groupInfo.groupID!)
-                    .collection('users')
-                    .doc(user!.uid)
-                    .get()
-                    .then((value) {
-                  if (value.exists && value.data()!.containsKey('points')) {
-                    currentUserPoints = value['points'];
-                  }
-                });
-              }
-
-              groupCards.add(GroupCard(
-                title: groupInfo.title!,
-                isStarred: groupInfo.starred!,
-                subTitle: groupInfo.description!,
-                numbOfTasksAssigned: numbOfTasksAssigned,
-                visible: groupInfo.visible!,
-                index: groupInfo.index!,
-                profilePic: groupInfo.profilePic!,
-                isArchived: groupInfo.isArchived!,
-                handleStarToggle: handleStarToggle,
-                uGroupID: groupId,
-                uid: groupInfo.groupID!,
-                isAdmin: isAdmin,
-                points: currentUserPoints,
-              ));
-
-              // sort according to index
-              groupCards.sort((a, b) => a.index.compareTo(b.index));
-
-              // check those that are archived and add them to the archived list
-              if (groupInfo.isArchived == true) {
-                groupCardsArchived.add(GroupCard(
-                  title: groupInfo.title!,
-                  isStarred: groupInfo.starred!,
-                  subTitle: groupInfo.description!,
-                  numbOfTasksAssigned: numbOfTasksAssigned,
-                  visible: groupInfo.visible!,
-                  index: groupInfo.index!,
-                  profilePic: groupInfo.profilePic!,
-                  isArchived: groupInfo.isArchived!,
-                  handleStarToggle: handleStarToggle,
-                  uGroupID: groupId,
-                  uid: groupId,
-                  isAdmin: isAdmin,
-                  points: currentUserPoints,
-                ));
-              }
-
-              setState(() {});
-            });
-          });
-        }
-        setState(() {});
-      });
-    }
+    listenToGroups(); // new method to listen to groups
+    groupCards.sort((a, b) => a.index.compareTo(b.index));
 
     // get the data from the database according to uid
     FirebaseFirestore.instance
@@ -172,6 +178,74 @@ class _HomePageState extends State<HomePage> {
     }
 
     groupCardsSorted.addAll(groupCards);
+  }
+
+  void requestPermission() async {
+    NotificationSettings settings = await _firebaseMessaging.requestPermission(
+      alert: true,
+      announcement: false,
+      badge: true,
+      carPlay: false,
+      criticalAlert: false,
+      provisional: false,
+      sound: true,
+    );
+
+    if (settings.authorizationStatus == AuthorizationStatus.denied) {
+      showDialog(
+        context: context,
+        builder: (BuildContext context) {
+          return AlertDialog(
+            title: const Text('Permission Denied'),
+            content: const Text(
+                'We need notification permissions to keep you informed about important updates. Please enable notifications in your device settings.'),
+            actions: <Widget>[
+              ElevatedButton(
+                child: const Text('OK'),
+                onPressed: () {
+                  Navigator.of(context).pop();
+                },
+              ),
+            ],
+          );
+        },
+      );
+    } else {
+      print('User granted permission: ${settings.authorizationStatus}');
+    }
+  }
+
+  void firebaseCloudMessagingListeners() {
+    FirebaseMessaging.onMessage.listen((RemoteMessage message) {
+      RemoteNotification? notification = message.notification;
+      AndroidNotification? android = message.notification?.android;
+
+      if (notification != null && android != null) {
+        showDialog(
+          context: context,
+          builder: (BuildContext context) {
+            return AlertDialog(
+              title: Text(notification.title ?? ''),
+              content: SingleChildScrollView(
+                child: ListBody(
+                  children: <Widget>[
+                    Text(notification.body ?? ''),
+                  ],
+                ),
+              ),
+            );
+          },
+        );
+      }
+    });
+
+    FirebaseMessaging.onMessageOpenedApp.listen((RemoteMessage message) {
+      print('A new onMessageOpenedApp event was published!');
+    });
+
+    _firebaseMessaging.getToken().then((deviceToken) {
+      print("Firebase Device token: $deviceToken");
+    });
   }
 
   Future<void> handleStarToggle(int index, bool isStarredd, String uid) async {
@@ -428,14 +502,15 @@ class _HomePageState extends State<HomePage> {
   }
 
   Padding buildTitle({required username}) {
-    return const Padding(
-      padding: EdgeInsets.only(top: 20),
-      child: Text(
-        "Achievio",
-        style: TextStyle(
-          fontSize: 28,
-          fontWeight: FontWeight.bold,
-          color: kTitleColor,
+    return Padding(
+      padding: const EdgeInsets.only(right: 30),
+      child: Container(
+        width: 150,
+        height: 70,
+        child: Image(
+          image: const AssetImage('assets/images/achievio.png'),
+          height: MediaQuery.of(context).size.height * 1,
+          fit: BoxFit.cover,
         ),
       ),
     );
@@ -494,7 +569,7 @@ class _HomePageState extends State<HomePage> {
               // preview a larger image as a hero animation
             },
             child: Padding(
-              padding: const EdgeInsets.only(left: 20, top: 20, right: 20),
+              padding: const EdgeInsets.only(left: 20, right: 20),
               child: ClipRRect(
                 borderRadius: const BorderRadius.all(Radius.circular(10)),
                 child: CachedNetworkImage(

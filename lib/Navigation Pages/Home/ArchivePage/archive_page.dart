@@ -44,7 +44,6 @@ class _ArchivePageState extends State<ArchivePage> {
           centerTitle: true,
           leading: IconButton(
             icon: const Icon(
-              // TODO: Change this to appeal to the user's device (Apple or Android)
               Icons.arrow_back,
               color: Colors.white,
             ),

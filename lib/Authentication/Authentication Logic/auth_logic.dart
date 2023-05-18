@@ -44,6 +44,7 @@ class Auth {
         );
       }
     }
+    return null;
   }
 
   // method to return scaffold message
@@ -65,7 +66,7 @@ class Auth {
     String password,
     String username,
     String name,
-    Gender,
+    String gender,
   ) async {
     // create a user with email and password
     // then store that user in a variable called user which will be stored in firestore
@@ -79,16 +80,18 @@ class Auth {
       return userCredential.user;
     } on FirebaseAuthException catch (e) {
       if (e.code == 'weak-password') {
-        print('The password provided is too weak.');
-      } else if (e.code == 'email-already-in-use') {
-        print('The account already exists for that email.');
-      }
-    } catch (e) {
-      print(e);
+      } else if (e.code == 'email-already-in-use') {}
     }
+    return null;
   }
 
   Future<void> signOut() async {
     await _firebaseAuth.signOut();
+  }
+
+  // log out
+  Future<void> logOut(context) async {
+    await _firebaseAuth.signOut();
+    Navigator.pushNamed(context, '/login');
   }
 }

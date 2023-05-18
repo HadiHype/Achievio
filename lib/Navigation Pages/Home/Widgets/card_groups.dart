@@ -2,6 +2,7 @@ import 'package:achievio/Navigation%20Pages/Group/admin_task_page.dart';
 import 'package:achievio/Navigation%20Pages/Group/group_page.dart';
 import 'package:achievio/User%20Interface/app_colors.dart';
 import 'package:achievio/User%20Interface/variables.dart';
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
@@ -24,7 +25,9 @@ class GroupCard extends StatefulWidget {
     required this.uGroupID,
     required this.uid,
     required this.isAdmin,
+    required this.adminName,
     required this.points,
+    required this.adminProfilePicture,
   });
 
   String title;
@@ -41,6 +44,8 @@ class GroupCard extends StatefulWidget {
   String uGroupID;
   bool isAdmin;
   int points;
+  String adminName;
+  String adminProfilePicture;
 
   @override
   State<GroupCard> createState() => _GroupCardState();
@@ -51,7 +56,6 @@ class _GroupCardState extends State<GroupCard> {
 
   @override
   Widget build(BuildContext context) {
-    // TODO: Let the card be clickable and navigate to the group page
     int isPressed = 0;
 
     return widget.visible == true
@@ -64,7 +68,11 @@ class _GroupCardState extends State<GroupCard> {
                   builder: (context) {
                     if (widget.isAdmin) {
                       return AdminTasksPage(
-                          uid: widget.uid, groupPicture: widget.profilePic);
+                        uid: widget.uid,
+                        groupPicture: widget.profilePic,
+                        adminName: widget.adminName,
+                        adminProfilePicture: widget.adminProfilePicture,
+                      );
                     } else {
                       return UserTaskPage(
                         uid: widget.uid,
@@ -99,8 +107,8 @@ class _GroupCardState extends State<GroupCard> {
                                   child: ClipRRect(
                                     borderRadius: const BorderRadius.all(
                                         Radius.circular(10)),
-                                    child: Image(
-                                      image: NetworkImage(widget.profilePic),
+                                    child: CachedNetworkImage(
+                                      imageUrl: widget.profilePic,
                                       width: 36,
                                       height: 36,
                                       fit: BoxFit.cover,
@@ -235,14 +243,12 @@ class _GroupCardState extends State<GroupCard> {
                                 : Container(),
                             !widget.isAdmin
                                 ? CircleAvatar(
-                                    backgroundColor: Color(0xBD569DC1),
-                                    child: Container(
-                                      child: Text(
-                                        widget.points.toString(),
-                                        style: const TextStyle(
-                                          fontSize: 10.5,
-                                          color: Colors.white,
-                                        ),
+                                    backgroundColor: const Color(0xBD569DC1),
+                                    child: Text(
+                                      widget.points.toString(),
+                                      style: const TextStyle(
+                                        fontSize: 10.5,
+                                        color: Colors.white,
                                       ),
                                     ),
                                   )
@@ -271,7 +277,6 @@ class _GroupCardState extends State<GroupCard> {
     var user = FirebaseAuth.instance.currentUser;
 
     if (!widget.isArchived) {
-      print("Archive");
       widget.visible = false;
       groupCardstemp = groupCards.removeAt(widget.index);
       groupCardsArchived.add(groupCardstemp);

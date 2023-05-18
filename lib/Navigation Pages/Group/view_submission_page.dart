@@ -4,9 +4,11 @@ import 'package:flutter/material.dart';
 class ViewSubmissionsPage extends StatefulWidget {
   final String groupId;
 
-  const ViewSubmissionsPage({required this.groupId});
+  const ViewSubmissionsPage({required this.groupId, Key? key})
+      : super(key: key);
 
   @override
+  // ignore: library_private_types_in_public_api
   _ViewSubmissionsPageState createState() => _ViewSubmissionsPageState();
 }
 
@@ -26,22 +28,59 @@ class _ViewSubmissionsPageState extends State<ViewSubmissionsPage> {
           content: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              Text('Please provide a note for your decision:'),
+              const Text('Please provide a note for your decision:'),
+              SizedBox(height: 10),
               TextFormField(
                 controller: noteController,
-                decoration: InputDecoration(hintText: 'Enter note'),
+                decoration: const InputDecoration(
+                  // isDense: true,
+                  contentPadding:
+                      EdgeInsets.symmetric(horizontal: 10, vertical: 0),
+                  hintText: 'Note',
+                  hintStyle: TextStyle(
+                    color: Colors.black45,
+                    fontSize: 16,
+                    fontWeight: FontWeight.w400,
+                  ),
+
+                  fillColor: Color(0xFFF5F5F5),
+                  focusedBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.all(
+                      Radius.circular(6),
+                    ),
+                    borderSide: BorderSide(
+                      color: Colors.black,
+                      width: 2,
+                    ),
+                  ),
+                  enabledBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.all(
+                      Radius.circular(6),
+                    ),
+                    borderSide: BorderSide(
+                      color: Colors.black,
+                      width: 1,
+                    ),
+                  ),
+                  filled: true,
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.all(
+                      Radius.circular(6),
+                    ),
+                  ),
+                ),
               ),
             ],
           ),
           actions: <Widget>[
             TextButton(
-              child: Text('Cancel'),
+              child: const Text('Cancel', style: TextStyle(color: Colors.red)),
               onPressed: () {
                 Navigator.of(context).pop();
               },
             ),
             TextButton(
-              child: Text('Submit'),
+              child: const Text('Submit', style: TextStyle(color: Colors.blue)),
               onPressed: () async {
                 await FirebaseFirestore.instance
                     .collection('users')
@@ -81,11 +120,6 @@ class _ViewSubmissionsPageState extends State<ViewSubmissionsPage> {
                     });
                   });
                 } else {
-                  print(widget.groupId);
-
-                  print(taskId);
-                  print(submittedBy);
-
                   await FirebaseFirestore.instance
                       .collection('groups')
                       .doc(widget.groupId)
@@ -115,9 +149,6 @@ class _ViewSubmissionsPageState extends State<ViewSubmissionsPage> {
                   });
                 }
 
-                print('Points added to user');
-                print(submittedBy);
-
                 // Delete the submission from the group
                 await FirebaseFirestore.instance
                     .collection('groups')
@@ -126,6 +157,7 @@ class _ViewSubmissionsPageState extends State<ViewSubmissionsPage> {
                     .doc(taskId)
                     .delete();
 
+                // ignore: use_build_context_synchronously
                 Navigator.of(context).pop();
               },
             ),
@@ -144,17 +176,18 @@ class _ViewSubmissionsPageState extends State<ViewSubmissionsPage> {
 
     return Scaffold(
       appBar: AppBar(
-        title: Text('View Submissions'),
+        title: const Text('View Submissions'),
+        backgroundColor: const Color(0xBD569DC1),
       ),
       body: StreamBuilder<QuerySnapshot>(
         stream: submissions.snapshots(),
         builder: (BuildContext context, AsyncSnapshot<QuerySnapshot> snapshot) {
           if (snapshot.hasError) {
-            return CircularProgressIndicator();
+            return const CircularProgressIndicator();
           }
 
           if (snapshot.connectionState == ConnectionState.waiting) {
-            return Text("Loading");
+            return const Text("Loading");
           }
 
           return ListView(
@@ -170,11 +203,11 @@ class _ViewSubmissionsPageState extends State<ViewSubmissionsPage> {
                 builder: (BuildContext context,
                     AsyncSnapshot<DocumentSnapshot> snapshot) {
                   if (snapshot.hasError) {
-                    return Text('Something went wrong');
+                    return const Text('Something went wrong');
                   }
 
                   if (snapshot.connectionState == ConnectionState.waiting) {
-                    return Text("");
+                    return const Text("");
                   }
 
                   Map<String, dynamic> userData =
@@ -189,7 +222,7 @@ class _ViewSubmissionsPageState extends State<ViewSubmissionsPage> {
                       mainAxisSize: MainAxisSize.min,
                       children: [
                         IconButton(
-                          icon: const Icon(Icons.check),
+                          icon: const Icon(Icons.check, color: Colors.green),
                           onPressed: () {
                             _respondToSubmission(
                               decision: 'Accepted',
@@ -199,7 +232,7 @@ class _ViewSubmissionsPageState extends State<ViewSubmissionsPage> {
                           },
                         ),
                         IconButton(
-                          icon: Icon(Icons.close),
+                          icon: const Icon(Icons.close, color: Colors.red),
                           onPressed: () {
                             _respondToSubmission(
                               decision: 'Rejected',
@@ -217,7 +250,7 @@ class _ViewSubmissionsPageState extends State<ViewSubmissionsPage> {
                         builder: (BuildContext context) {
                           return AlertDialog(
                             title: Text('Attachments for ${data['taskTitle']}'),
-                            content: Container(
+                            content: SizedBox(
                               height: 300, // adjust the height to your needs
                               width: double.maxFinite,
                               child: ListView(
@@ -247,39 +280,6 @@ class _ViewSubmissionsPageState extends State<ViewSubmissionsPage> {
                   );
                 },
               );
-
-              // onTap: () {
-              // showDialog(
-              //   context: context,
-              //   builder: (BuildContext context) {
-              //     return AlertDialog(
-              //       title: Text('Attachments for ${data['taskTitle']}'),
-              //       content: Container(
-              //         height: 300, // adjust the height to your needs
-              //         width: double.maxFinite,
-              //         child: ListView(
-              //           children: List<Widget>.from(
-              //               data['attachments'].entries.map((entry) {
-              //             return ListTile(
-              //               title: Text(entry.key),
-              //               leading: Image.network(entry.value),
-              //               onTap: () {
-              //                 Navigator.push(
-              //                   context,
-              //                   MaterialPageRoute(
-              //                     builder: (context) => ImageDisplayPage(
-              //                         imageUrl: entry.value),
-              //                   ),
-              //                 );
-              //               },
-              //             );
-              //           }).toList()),
-              //         ),
-              //       ),
-              //     );
-              //   },
-              // );
-              // },
             }).toList(),
           );
         },
@@ -291,7 +291,7 @@ class _ViewSubmissionsPageState extends State<ViewSubmissionsPage> {
 class ImageDisplayPage extends StatelessWidget {
   final String imageUrl;
 
-  ImageDisplayPage({required this.imageUrl});
+  const ImageDisplayPage({super.key, required this.imageUrl});
 
   @override
   Widget build(BuildContext context) {

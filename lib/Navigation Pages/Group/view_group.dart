@@ -16,6 +16,7 @@ class GroupDetailsPage extends StatefulWidget {
       : super(key: key);
 
   @override
+  // ignore: library_private_types_in_public_api
   _GroupDetailsPageState createState() => _GroupDetailsPageState();
 }
 
@@ -65,8 +66,9 @@ class _GroupDetailsPageState extends State<GroupDetailsPage> {
                   ),
                   title: Text(widget.groupTitle,
                       style: const TextStyle(fontSize: 20)),
-                  subtitle: Text(widget
-                      .groupDescription), // Replace with your group description
+                  subtitle: Text(
+                    widget.groupDescription,
+                  ), // Replace with your group description
                 ),
                 const Divider(height: 10, thickness: 1),
                 Expanded(
@@ -78,9 +80,9 @@ class _GroupDetailsPageState extends State<GroupDetailsPage> {
                       return ListTile(
                         leading: CircleAvatar(
                           backgroundImage:
-                              NetworkImage(memberData['profilePicture']),
+                              NetworkImage(memberData['profilePicture'] ?? ''),
                         ),
-                        title: Text(memberData['username']),
+                        title: Text(memberData['username'] ?? ''),
                         subtitle: Text('Points: ${memberData['points']}'),
                       );
                     },

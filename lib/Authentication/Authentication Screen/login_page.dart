@@ -1,3 +1,4 @@
+import 'package:achievio/Authentication/Authentication%20Screen/forgot_password.dart';
 import 'package:achievio/Authentication/Authentication%20Screen/signup_page.dart';
 import 'package:achievio/Navigation%20Pages/navigation.dart';
 import 'package:achievio/User%20Interface/app_colors.dart';
@@ -299,7 +300,11 @@ class _LoginScreenState extends State<LoginScreen> {
                       width: 50,
                       child: TextButton(
                         onPressed: () {
-                          // Navigator.pushNamed(context, '/forgot_password');
+                          Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                  builder: (context) =>
+                                      ForgotPasswordScreen()));
                         },
                         style: TextButton.styleFrom(
                           minimumSize: Size.zero,

@@ -36,6 +36,7 @@ class _UserTaskPageState extends State<UserTaskPage> {
           },
         ),
         title: Text(widget.groupTitle), // replace with your group title
+        backgroundColor: Color(0xBD569DC1),
         actions: <Widget>[
           GestureDetector(
             onTap: () => Navigator.push(
@@ -79,11 +80,15 @@ class _UserTaskPageState extends State<UserTaskPage> {
             children: snapshot.data!.docs.map((DocumentSnapshot document) {
               Map<String, dynamic> data =
                   document.data()! as Map<String, dynamic>;
+
               return ListTile(
                 title: Text(data['title']),
                 subtitle: Text(data['description']),
                 trailing: IconButton(
-                  icon: const Icon(Icons.file_upload),
+                  icon: const Icon(
+                    Icons.file_upload,
+                    color: Color(0xBD569DC1),
+                  ),
                   onPressed: () {
                     Navigator.of(context).push(MaterialPageRoute(
                       builder: (context) => SubmissionPage(
@@ -91,6 +96,8 @@ class _UserTaskPageState extends State<UserTaskPage> {
                         ugroupid: widget.uid,
                         taskTitle: data['title'],
                         numberOfAttachments: data['attachments'].length,
+                        attachments: data['attachments'],
+                        taskAdmin: data['assignedBy'],
                       ),
                     ));
                   },

@@ -4,7 +4,6 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 
-import '../../Models/userinfo.dart';
 import '../../User Interface/variables.dart';
 import 'Widgets/activity_app_bar.dart';
 
@@ -24,26 +23,26 @@ class _ActivityPageState extends State<ActivityPage> {
   Widget build(BuildContext context) {
     final now = DateTime.now();
 
-    List<String> convertedDates = taskDate.map((date) {
-      DateTime parsedDate = DateTime.parse(date);
-      Duration difference = DateTime.now().difference(parsedDate);
+    // List<String> convertedDates = taskDate.map((date) {
+    //   DateTime parsedDate = DateTime.parse(date);
+    //   Duration difference = DateTime.now().difference(parsedDate);
 
-      if (difference.inSeconds < 60) {
-        return "${difference.inSeconds} sec";
-      } else if (difference.inMinutes < 60) {
-        return "${difference.inMinutes} min";
-      } else if (difference.inHours < 24) {
-        return "${difference.inHours} hr";
-      } else if (difference.inDays < 7) {
-        return "${difference.inDays} d";
-      } else if (difference.inDays < 365 / 12 * 13) {
-        return "${(difference.inDays / 7).floor()} w";
-      } else if (difference.inDays < 365 * 1.5) {
-        return "${(difference.inDays / (365 / 12)).floor()} m";
-      } else {
-        return "${(difference.inDays / 365).floor()} y";
-      }
-    }).toList();
+    //   if (difference.inSeconds < 60) {
+    //     return "${difference.inSeconds} sec";
+    //   } else if (difference.inMinutes < 60) {
+    //     return "${difference.inMinutes} min";
+    //   } else if (difference.inHours < 24) {
+    //     return "${difference.inHours} hr";
+    //   } else if (difference.inDays < 7) {
+    //     return "${difference.inDays} d";
+    //   } else if (difference.inDays < 365 / 12 * 13) {
+    //     return "${(difference.inDays / 7).floor()} w";
+    //   } else if (difference.inDays < 365 * 1.5) {
+    //     return "${(difference.inDays / (365 / 12)).floor()} m";
+    //   } else {
+    //     return "${(difference.inDays / 365).floor()} y";
+    //   }
+    // }).toList();
 
     // Define variables to store the lists for each group
     final todayList = <Widget>[];
@@ -53,65 +52,65 @@ class _ActivityPageState extends State<ActivityPage> {
     final thisMonthList = <Widget>[];
     final earlierList = <Widget>[];
 
-    // Loop through each item in the list
-    for (int i = 0; i < taskDate.length; i++) {
-      // Get the date of the current list item
-      final itemDate = DateTime.parse(taskDate[i]);
+    // // Loop through each item in the list
+    // for (int i = 0; i < taskDate.length; i++) {
+    //   // Get the date of the current list item
+    //   final itemDate = DateTime.parse(taskDate[i]);
 
-      // Determine the time difference between the current date and the list item date
-      final diff = now.difference(itemDate);
+    //   // Determine the time difference between the current date and the list item date
+    //   final diff = now.difference(itemDate);
 
-      // Determine the time difference in days
-      final daysDiff = diff.inDays;
+    //   // Determine the time difference in days
+    //   final daysDiff = diff.inDays;
 
-      // Define a widget that displays the list item
-      final listItem = ListTile(
-        leading: const CircleAvatar(
-          radius: 21,
-          backgroundColor: Colors.white,
-          backgroundImage: AssetImage("assets/images/Profile_Image.jpg"),
-        ),
-        title: Text(
-          usernames[i],
-          style: const TextStyle(
-            fontSize: 15,
-            color: kBlueGreyColor,
-            fontWeight: FontWeight.w600,
-          ),
-        ),
-        subtitle: Text(
-          taskStatus[i],
-          style: const TextStyle(
-            fontSize: 12,
-            color: kSubtitleColor,
-            fontWeight: FontWeight.w400,
-          ),
-        ),
-        trailing: Text(
-          convertedDates[i],
-          style: const TextStyle(
-            fontSize: 12,
-            color: kSubtitleColor,
-            fontWeight: FontWeight.w400,
-          ),
-        ),
-      );
+    //   // Define a widget that displays the list item
+    //   final listItem = ListTile(
+    //     leading: const CircleAvatar(
+    //       radius: 21,
+    //       backgroundColor: Colors.white,
+    //       backgroundImage: AssetImage("assets/images/Profile_Image.jpg"),
+    //     ),
+    //     title: Text(
+    //       usernames[i],
+    //       style: const TextStyle(
+    //         fontSize: 15,
+    //         color: kBlueGreyColor,
+    //         fontWeight: FontWeight.w600,
+    //       ),
+    //     ),
+    //     subtitle: Text(
+    //       taskStatus[i],
+    //       style: const TextStyle(
+    //         fontSize: 12,
+    //         color: kSubtitleColor,
+    //         fontWeight: FontWeight.w400,
+    //       ),
+    //     ),
+    //     trailing: Text(
+    //       convertedDates[i],
+    //       style: const TextStyle(
+    //         fontSize: 12,
+    //         color: kSubtitleColor,
+    //         fontWeight: FontWeight.w400,
+    //       ),
+    //     ),
+    //   );
 
-      // Add the list item to the appropriate list based on time difference
-      if (daysDiff == 0) {
-        todayList.add(listItem);
-      } else if (daysDiff >= 2 && daysDiff < 7) {
-        thisWeekList.add(listItem);
-      } else if (daysDiff == 1) {
-        yesterdayList.add(listItem);
-      } else if (daysDiff >= 7 && daysDiff < 14) {
-        lastWeekList.add(listItem);
-      } else if (daysDiff <= 30 && daysDiff >= 14) {
-        thisMonthList.add(listItem);
-      } else {
-        earlierList.add(listItem);
-      }
-    }
+    //   // Add the list item to the appropriate list based on time difference
+    //   if (daysDiff == 0) {
+    //     todayList.add(listItem);
+    //   } else if (daysDiff >= 2 && daysDiff < 7) {
+    //     thisWeekList.add(listItem);
+    //   } else if (daysDiff == 1) {
+    //     yesterdayList.add(listItem);
+    //   } else if (daysDiff >= 7 && daysDiff < 14) {
+    //     lastWeekList.add(listItem);
+    //   } else if (daysDiff <= 30 && daysDiff >= 14) {
+    //     thisMonthList.add(listItem);
+    //   } else {
+    //     earlierList.add(listItem);
+    //   }
+    // }
 
     // Define a widget that displays a group of items with a header
     Widget buildGroup(String header, List<Widget> items) {
@@ -134,6 +133,23 @@ class _ActivityPageState extends State<ActivityPage> {
               ],
             )
           : Container();
+    }
+
+    Future<List<Map<String, dynamic>>> fetchNotifications() async {
+      final user = FirebaseAuth.instance.currentUser;
+      if (user == null) {
+        return [];
+      }
+
+      QuerySnapshot<Map<String, dynamic>> snapshot = await FirebaseFirestore
+          .instance
+          .collection('users')
+          .doc(user.uid)
+          .collection('notifications')
+          .orderBy('createdAt', descending: true)
+          .get();
+
+      return snapshot.docs.map((doc) => doc.data()).toList();
     }
 
     return SafeArea(
@@ -167,7 +183,6 @@ class _ActivityPageState extends State<ActivityPage> {
                         onPressed: () {
                           setState(() {
                             listShow = "Friend Requests";
-                            print(listShow);
                           });
                         },
                         child: Text(
@@ -187,7 +202,6 @@ class _ActivityPageState extends State<ActivityPage> {
                         onPressed: () {
                           setState(() {
                             listShow = "Notifications";
-                            print(listShow);
                           });
                         },
                         child: Text(
@@ -211,20 +225,133 @@ class _ActivityPageState extends State<ActivityPage> {
               // Build the list with groups of items
 
               listShow == "Notifications"
-                  ? SliverList(
-                      delegate: SliverChildListDelegate(
-                        [
-                          const SizedBox(
-                            height: 10,
+                  ? FutureBuilder<List<Map<String, dynamic>>>(
+                      future: fetchNotifications(),
+                      builder: (BuildContext context,
+                          AsyncSnapshot<List<Map<String, dynamic>>> snapshot) {
+                        if (snapshot.hasError) {
+                          return const SliverFillRemaining(
+                            child: Center(
+                              child: Text('An error occurred.'),
+                            ),
+                          );
+                        }
+
+                        if (snapshot.connectionState ==
+                            ConnectionState.waiting) {
+                          return const SliverFillRemaining(
+                            child: Center(
+                              child: CircularProgressIndicator(),
+                            ),
+                          );
+                        }
+
+                        List<Map<String, dynamic>> notifications =
+                            snapshot.data!;
+                        for (int i = 0; i < notifications.length; i++) {
+                          // Get the date of the current list item
+                          final itemDate =
+                              notifications[i]['createdAt'].toDate();
+
+                          // DateTime parsedDate = DateTime.parse(itemDate);
+                          Duration difference =
+                              DateTime.now().difference(itemDate);
+
+                          String convertedDate = "";
+
+                          if (difference.inSeconds < 60) {
+                            convertedDate = "${difference.inSeconds} sec";
+                          } else if (difference.inMinutes < 60) {
+                            convertedDate = "${difference.inMinutes} min";
+                          } else if (difference.inHours < 24) {
+                            convertedDate = "${difference.inHours} hr";
+                          } else if (difference.inDays < 7) {
+                            convertedDate = "${difference.inDays} d";
+                          } else if (difference.inDays < 365 / 12 * 13) {
+                            convertedDate =
+                                "${(difference.inDays / 7).floor()} w";
+                          } else if (difference.inDays < 365 * 1.5) {
+                            convertedDate =
+                                "${(difference.inDays / (365 / 12)).floor()} m";
+                          } else {
+                            convertedDate =
+                                "${(difference.inDays / 365).floor()} y";
+                          }
+
+                          // Determine the time difference between the current date and the list item date
+                          final diff = now.difference(itemDate);
+
+                          // Determine the time difference in days
+                          final daysDiff = diff.inDays;
+
+                          // Define a widget that displays the list item
+                          final listItem = ListTile(
+                            leading: ClipOval(
+                              child: CachedNetworkImage(
+                                imageUrl: notifications[i]
+                                        ['adminProfilePicture'] ??
+                                    'default_image_url',
+                                fit: BoxFit.cover,
+                                width: 42, // 2 * radius
+                                height: 42, // 2 * radius
+                                placeholder: (context, url) =>
+                                    CircularProgressIndicator(),
+                                errorWidget: (context, url, error) =>
+                                    Icon(Icons.error),
+                              ),
+                            ),
+                            title: Text(
+                              notifications[i]['adminName'] ?? 'Unknown Admin',
+                              style: const TextStyle(
+                                fontWeight: FontWeight.w600,
+                              ),
+                            ),
+                            subtitle: Text(
+                              notifications[i]['taskTitle'] ?? 'No Title',
+                              style: const TextStyle(
+                                fontWeight: FontWeight.w400,
+                              ),
+                            ),
+                            trailing: Text(
+                              convertedDate,
+                              style: const TextStyle(
+                                fontWeight: FontWeight.w400,
+                              ),
+                            ),
+                          );
+
+                          // Add the list item to the appropriate list based on time difference
+                          if (daysDiff == 0) {
+                            todayList.add(listItem);
+                          } else if (daysDiff >= 2 && daysDiff < 7) {
+                            thisWeekList.add(listItem);
+                          } else if (daysDiff == 1) {
+                            yesterdayList.add(listItem);
+                          } else if (daysDiff >= 7 && daysDiff < 14) {
+                            lastWeekList.add(listItem);
+                          } else if (daysDiff <= 30 && daysDiff >= 14) {
+                            thisMonthList.add(listItem);
+                          } else {
+                            earlierList.add(listItem);
+                          }
+                        }
+
+                        return SliverList(
+                          delegate: SliverChildListDelegate(
+                            [
+                              const SizedBox(
+                                height: 10,
+                              ),
+                              buildGroup("Today", todayList),
+                              buildGroup("This Week", thisWeekList),
+                              buildGroup("Yesterday", yesterdayList),
+                              buildGroup("Last Week", lastWeekList),
+                              buildGroup("This Month", thisMonthList),
+                              buildGroup("Earlier", earlierList)
+                            ],
                           ),
-                          buildGroup("Today", todayList),
-                          buildGroup("This Week", thisWeekList),
-                          buildGroup("Yesterday", yesterdayList),
-                          buildGroup("Last Week", lastWeekList),
-                          buildGroup("This Month", thisMonthList),
-                          buildGroup("Earlier", earlierList)
-                        ],
-                      ),
+                        );
+                      },
                     )
                   : FutureBuilder<dynamic>(
                       future: getFriendRequests(),
@@ -418,7 +545,6 @@ class _ActivityPageState extends State<ActivityPage> {
 
       return friendRequestsSnapshot.then((value) {
         // return the list of users from the friend requests list
-        print(value.docs.map((e) => e.data()).toList());
         return value.docs.map((e) => e.data()).toList();
       });
     });

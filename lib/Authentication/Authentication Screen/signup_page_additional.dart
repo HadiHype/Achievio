@@ -4,6 +4,7 @@ import 'package:achievio/Navigation%20Pages/navigation.dart';
 
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:firebase_storage/firebase_storage.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_exif_rotation/flutter_exif_rotation.dart';
@@ -537,7 +538,7 @@ class _AdditionalSignUpScreenState extends State<AdditionalSignUpScreen> {
                             decoration: const InputDecoration(
                               contentPadding: EdgeInsets.symmetric(
                                   horizontal: 10, vertical: 0),
-                              hintText: 'achievio',
+                              hintText: 'username',
                               hintStyle: TextStyle(
                                 color: Colors.black45,
                                 fontSize: 16,
@@ -603,13 +604,15 @@ class _AdditionalSignUpScreenState extends State<AdditionalSignUpScreen> {
 
                                         var db = FirebaseFirestore.instance;
 
+                                        // get device token
+                                        String? deviceToken =
+                                            await FirebaseMessaging.instance
+                                                .getToken();
+
                                         await db
                                             .collection('users')
                                             .doc(widget.uid)
                                             .set({
-                                          // 'email': widget.email,
-                                          // 'password': widget.password,
-                                          // 'uid': widget.uid,
                                           'gender': _genderController.text,
                                           'dateofbirth':
                                               _dateOfBirthController.text,
@@ -624,6 +627,7 @@ class _AdditionalSignUpScreenState extends State<AdditionalSignUpScreen> {
                                               DateTime.now().toString(),
                                           'dateLastLogin':
                                               DateTime.now().toString(),
+                                          'deviceToken': deviceToken,
                                         }, SetOptions(merge: true));
                                       } on FirebaseAuthException catch (e) {
                                         if (e.code == 'user-not-found') {

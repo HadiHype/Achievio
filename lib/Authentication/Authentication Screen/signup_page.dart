@@ -156,7 +156,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
                             obscureText: !showPassword,
                             validator: (value) {
                               RegExp regex = RegExp(
-                                  r'^(?=.*?[A-Z])(?=.*?[a-z])(?=.*?[0-9])(?=.*?[!@#\$&*~]).{8,}$');
+                                  r'^(?=.*?[A-Z])(?=.*?[a-z])(?=.*?[0-9])(?=.*?[!@#\$&*~_-]).{8,}$');
                               if (value!.isEmpty) {
                                 return 'Please enter password';
                               } else {
@@ -259,7 +259,6 @@ class _SignUpScreenState extends State<SignUpScreen> {
                                             .doc(newUser.user!.uid)
                                             .set({
                                           'email': email,
-                                          'password': password,
                                           'uid': newUser.user!.uid,
                                           'gender': "",
                                           'dateofbirth': "",
